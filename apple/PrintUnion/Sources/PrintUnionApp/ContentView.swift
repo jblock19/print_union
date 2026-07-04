@@ -814,7 +814,7 @@ private struct RepurposeContentPanel: View {
         slotField("Host", role: .whenWhere, text: hostBinding)
         slotField("Date / Time / Venue", role: .whenWhere, text: whenWhereBinding)
         slotField("Invitation Line", role: .mainInvitation, text: mainInvitationBinding)
-        slotField("Details", role: .details, text: detailsBinding, lineLimit: 3...5)
+        slotField("Details", role: .details, text: detailsBinding, isMultiline: true)
         slotField("RSVP / Action", role: .callToAction, text: callToActionBinding)
         slotField("Contact", role: .callToAction, text: contactBinding)
       }
@@ -894,7 +894,7 @@ private struct RepurposeContentPanel: View {
     _ label: String,
     role: ContentRole,
     text: Binding<String>,
-    lineLimit: ClosedRange<Int> = 1...2
+    isMultiline: Bool = false
   ) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       HStack {
@@ -910,9 +910,21 @@ private struct RepurposeContentPanel: View {
         .help("Select this slot on the page")
       }
 
-      TextField(label, text: text, axis: .vertical)
-        .lineLimit(lineLimit)
-        .textFieldStyle(.roundedBorder)
+      if isMultiline {
+        TextEditor(text: text)
+          .font(.system(.body, design: .monospaced))
+          .frame(minHeight: 82)
+          .padding(4)
+          .background(Color(nsColor: .textBackgroundColor))
+          .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+          .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+              .stroke(Color.black.opacity(0.12), lineWidth: 1)
+          )
+      } else {
+        TextField(label, text: text)
+          .textFieldStyle(.roundedBorder)
+      }
     }
   }
 
@@ -1194,9 +1206,6 @@ private struct PrintCanvasView: View {
             y: (element.frame.y + element.frame.height / 2) * proxy.size.height
           )
           .overlay(selectionOverlay(for: element))
-          .onTapGesture {
-            selectedElementID = element.id
-          }
       }
     }
   }
@@ -1213,9 +1222,8 @@ private struct PrintCanvasView: View {
         .textFieldStyle(.plain)
         .padding(.horizontal, 8)
         .background(.black)
-        .onTapGesture {
-          selectedElementID = element.id
-        }
+        .focusable()
+        .onTapGesture { selectedElementID = element.id }
     case .text:
       textElementView(element)
     default:
@@ -1240,30 +1248,28 @@ private struct PrintCanvasView: View {
           .textCase(.uppercase)
           .minimumScaleFactor(0.35)
           .textFieldStyle(.plain)
+          .focusable()
       case .whenWhere:
-        TextField("", text: textBinding(for: element.id), axis: .vertical)
+        TextEditor(text: textBinding(for: element.id))
           .font(.system(.caption, design: .monospaced).weight(.semibold))
-          .lineLimit(3)
-          .minimumScaleFactor(0.5)
-          .textFieldStyle(.plain)
+          .scrollContentBackground(.hidden)
       case .details:
-        TextField("", text: textBinding(for: element.id), axis: .vertical)
+        TextEditor(text: textBinding(for: element.id))
           .font(.system(size: 13, weight: .medium, design: .monospaced))
           .lineSpacing(3)
-          .lineLimit(8)
-          .minimumScaleFactor(0.55)
-          .textFieldStyle(.plain)
+          .scrollContentBackground(.hidden)
       case .callToAction:
-        TextField("", text: textBinding(for: element.id), axis: .vertical)
+        TextField("", text: textBinding(for: element.id))
           .font(.system(.callout, design: .monospaced).weight(.bold))
-          .lineLimit(2)
           .minimumScaleFactor(0.5)
           .textFieldStyle(.plain)
+          .focusable()
       default:
-        TextField("", text: textBinding(for: element.id), axis: .vertical)
+        TextField("", text: textBinding(for: element.id))
           .font(.system(.body, design: .monospaced).weight(.semibold))
           .minimumScaleFactor(0.5)
           .textFieldStyle(.plain)
+          .focusable()
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -1309,6 +1315,7 @@ private struct PrintCanvasView: View {
     if selectedElementID == element.id {
       Rectangle()
         .stroke(.blue, lineWidth: 2)
+        .allowsHitTesting(false)
     }
   }
 
