@@ -35,7 +35,7 @@ struct ContentView: View {
 
       Divider()
 
-      InspectorView(document: document, selectedElement: selectedElement)
+      InspectorView(document: $document, selectedElementID: $selectedElementID)
         .frame(width: 340)
         .background(Color(nsColor: .controlBackgroundColor))
     }
@@ -222,6 +222,41 @@ struct ImportedSource: Equatable, Sendable {
 }
 
 private extension PrintUnionDocument {
+  func element(withID id: PrintElement.ID?) -> PrintElement? {
+    guard let id else { return nil }
+
+    return elements.first { $0.id == id }
+      ?? setup.proposedElements.first { $0.id == id }
+  }
+
+  mutating func updateElement(withID id: PrintElement.ID, _ update: (inout PrintElement) -> Void) {
+    if let elementIndex = elements.firstIndex(where: { $0.id == id }) {
+      update(&elements[elementIndex])
+    }
+
+    if let proposedIndex = setup.proposedElements.firstIndex(where: { $0.id == id }) {
+      update(&setup.proposedElements[proposedIndex])
+    }
+  }
+
+  mutating func removeElement(withID id: PrintElement.ID) {
+    elements.removeAll { $0.id == id }
+    setup.proposedElements.removeAll { $0.id == id }
+    setup.ambiguities.removeAll { $0.regionId == id }
+  }
+
+  mutating func confirmElement(withID id: PrintElement.ID) {
+    guard let proposedElement = setup.proposedElements.first(where: { $0.id == id }) else {
+      return
+    }
+
+    if proposedElement.type != .referenceImage && !elements.contains(where: { $0.id == id }) {
+      elements.append(proposedElement)
+    }
+
+    setup.ambiguities.removeAll { $0.regionId == id }
+  }
+
   func applyingInitialStyleMapProposal(for source: ImportedSource) -> PrintUnionDocument {
     var next = self
     next.intent = .eventAnnouncement
@@ -645,7 +680,7 @@ private struct PrintCanvasView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text("Editable Template")
+        Text(document.setup.proposedElements.isEmpty ? "Editable Template" : "Style Map Proposal")
           .font(.title2.bold())
         Spacer()
         Label("Print-ready preview", systemImage: "printer")
@@ -743,7 +778,13 @@ private struct PrintCanvasView: View {
     default:
       RoundedRectangle(cornerRadius: 3)
         .stroke(.black.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-        .overlay(Text(element.label).font(.caption).foregroundStyle(.secondary))
+        .overlay {
+          if selectedElementID == element.id {
+            Text(element.label)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
     }
   }
 
@@ -772,8 +813,12 @@ private struct PrintCanvasView: View {
 }
 
 private struct InspectorView: View {
-  let document: PrintUnionDocument
-  let selectedElement: PrintElement?
+  @Binding var document: PrintUnionDocument
+  @Binding var selectedElementID: PrintElement.ID?
+
+  private var selectedElement: PrintElement? {
+    document.element(withID: selectedElementID)
+  }
 
   var body: some View {
     Form {
@@ -790,18 +835,192 @@ private struct InspectorView: View {
       }
 
       Section("Selected") {
-        if let selectedElement {
-          LabeledContent("Label", value: selectedElement.label)
-          LabeledContent("Type", value: selectedElement.type.rawValue)
-          LabeledContent("Editable", value: selectedElement.editable ? "Yes" : "No")
-          LabeledContent("Reference", value: selectedElement.referenceOnly ? "Yes" : "No")
+        if let selectedElement, let selectedElementID {
+          TextField("Name", text: labelBinding(for: selectedElementID))
+
+          Picker("Type", selection: typeBinding(for: selectedElementID)) {
+            ForEach(PrintElementType.allCases) { type in
+              Text(type.displayName).tag(type)
+            }
+          }
+
+          Picker("Role", selection: roleBinding(for: selectedElementID)) {
+            Text("None").tag("")
+            ForEach(ContentRole.allCases) { role in
+              Text(role.displayName).tag(role.rawValue)
+            }
+          }
+
+          Toggle("Editable", isOn: editableBinding(for: selectedElementID))
+          Toggle("Reference only", isOn: referenceOnlyBinding(for: selectedElementID))
+
+          if selectedElement.type == .text || selectedElement.type == .chip || selectedElement.text != nil {
+            TextField("Visible text", text: textBinding(for: selectedElementID), axis: .vertical)
+              .lineLimit(1...4)
+          }
+
+          LabeledContent("ID", value: selectedElement.id)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
         } else {
           Text("Select an element on the page or in the sidebar.")
             .foregroundStyle(.secondary)
         }
       }
+
+      if let selectedElementID, selectedElement != nil {
+        Section("Bounds") {
+          frameSlider("X", value: frameBinding(for: selectedElementID, keyPath: \.x))
+          frameSlider("Y", value: frameBinding(for: selectedElementID, keyPath: \.y))
+          frameSlider("Width", value: frameBinding(for: selectedElementID, keyPath: \.width))
+          frameSlider("Height", value: frameBinding(for: selectedElementID, keyPath: \.height))
+        }
+
+        Section("Proposal") {
+          Button {
+            document.confirmElement(withID: selectedElementID)
+          } label: {
+            Label("Confirm Element", systemImage: "checkmark.circle")
+          }
+
+          Button(role: .destructive) {
+            document.removeElement(withID: selectedElementID)
+            self.selectedElementID = document.elements.first?.id ?? document.setup.proposedElements.first?.id
+          } label: {
+            Label("Remove Element", systemImage: "trash")
+          }
+        }
+      }
     }
     .formStyle(.grouped)
+  }
+
+  private func labelBinding(for id: PrintElement.ID) -> Binding<String> {
+    Binding(
+      get: { document.element(withID: id)?.label ?? "" },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.label = newValue
+        }
+      }
+    )
+  }
+
+  private func typeBinding(for id: PrintElement.ID) -> Binding<PrintElementType> {
+    Binding(
+      get: { document.element(withID: id)?.type ?? .group },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.type = newValue
+        }
+      }
+    )
+  }
+
+  private func roleBinding(for id: PrintElement.ID) -> Binding<String> {
+    Binding(
+      get: { document.element(withID: id)?.role?.rawValue ?? "" },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.role = newValue.isEmpty ? nil : ContentRole(rawValue: newValue)
+        }
+      }
+    )
+  }
+
+  private func editableBinding(for id: PrintElement.ID) -> Binding<Bool> {
+    Binding(
+      get: { document.element(withID: id)?.editable ?? false },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.editable = newValue
+        }
+      }
+    )
+  }
+
+  private func referenceOnlyBinding(for id: PrintElement.ID) -> Binding<Bool> {
+    Binding(
+      get: { document.element(withID: id)?.referenceOnly ?? false },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.referenceOnly = newValue
+        }
+      }
+    )
+  }
+
+  private func textBinding(for id: PrintElement.ID) -> Binding<String> {
+    Binding(
+      get: { document.element(withID: id)?.text ?? "" },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.text = newValue.isEmpty ? nil : newValue
+        }
+      }
+    )
+  }
+
+  private func frameBinding(for id: PrintElement.ID, keyPath: WritableKeyPath<ElementFrame, Double>) -> Binding<Double> {
+    Binding(
+      get: { document.element(withID: id)?.frame[keyPath: keyPath] ?? 0 },
+      set: { newValue in
+        document.updateElement(withID: id) { element in
+          element.frame[keyPath: keyPath] = min(max(newValue, 0), 1)
+        }
+      }
+    )
+  }
+
+  private func frameSlider(_ label: String, value: Binding<Double>) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack {
+        Text(label)
+        Spacer()
+        Text(value.wrappedValue, format: .number.precision(.fractionLength(2)))
+          .foregroundStyle(.secondary)
+          .monospacedDigit()
+      }
+      Slider(value: value, in: 0...1)
+    }
+  }
+}
+
+private extension PrintElementType {
+  var displayName: String {
+    switch self {
+    case .background: "Background"
+    case .texture: "Texture"
+    case .border: "Border"
+    case .divider: "Divider"
+    case .guide: "Guide"
+    case .text: "Text"
+    case .chip: "Chip"
+    case .imagePlaceholder: "Image placeholder"
+    case .qrPlaceholder: "QR placeholder"
+    case .logoMark: "Logo mark"
+    case .handwrittenMark: "Handwritten mark"
+    case .referenceImage: "Reference image"
+    case .group: "Group"
+    }
+  }
+}
+
+private extension ContentRole {
+  var displayName: String {
+    switch self {
+    case .category: "Category"
+    case .hostPrefix: "Host prefix"
+    case .host: "Host"
+    case .hostContext: "Host context"
+    case .title: "Title"
+    case .whenWhere: "When / where"
+    case .mainInvitation: "Main invitation"
+    case .details: "Details"
+    case .accessibilityNote: "Accessibility note"
+    case .callToAction: "Call to action"
+    case .contact: "Contact"
+    }
   }
 }
 
