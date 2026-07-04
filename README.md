@@ -1,6 +1,6 @@
-# Flyer Style Studio
+# Print Union
 
-A standalone Next.js seed for a product that turns uploaded flyer styles into editable modular templates.
+Print Union is a standalone Next.js seed for a product that turns uploaded flyer, poster, and notice styles into editable modular templates.
 
 ## Run
 

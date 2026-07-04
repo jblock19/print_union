@@ -1,6 +1,6 @@
 # Product Architecture
 
-Flyer Style Studio should treat the template JSON as the product contract. The web app, a future macOS app, and any extraction service can all read and write the same format.
+Print Union should treat the template JSON as the product contract. The web app, a future macOS app, and any extraction service can all read and write the same format.
 
 ## System Shape
 

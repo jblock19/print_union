@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Community Flyer MVP",
-  description: "A modular community flyer editor prototype."
+  title: "Print Union",
+  description: "Turn flat flyers and posters into editable design systems."
 };
 
 export default function RootLayout({ children }) {
