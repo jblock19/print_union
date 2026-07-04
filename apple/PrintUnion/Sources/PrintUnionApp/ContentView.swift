@@ -911,19 +911,19 @@ private struct RepurposeContentPanel: View {
       }
 
       if isMultiline {
-        TextEditor(text: text)
-          .font(.system(.body, design: .monospaced))
+        EditableTextView(
+          text: text,
+          font: .monospacedSystemFont(ofSize: 13, weight: .regular),
+          onFocus: { selectedElementID = document.firstElementID(for: role) }
+        )
           .frame(minHeight: 82)
-          .padding(4)
-          .background(Color(nsColor: .textBackgroundColor))
-          .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-          .overlay(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-              .stroke(Color.black.opacity(0.12), lineWidth: 1)
-          )
       } else {
-        TextField(label, text: text)
-          .textFieldStyle(.roundedBorder)
+        EditableTextField(
+          text: text,
+          placeholder: label,
+          onFocus: { selectedElementID = document.firstElementID(for: role) }
+        )
+        .frame(height: 26)
       }
     }
   }
@@ -1216,14 +1216,17 @@ private struct PrintCanvasView: View {
     case .background:
       Color.clear
     case .chip:
-      TextField("", text: textBinding(for: element.id))
-        .font(.system(.headline, design: .monospaced).weight(.bold))
-        .foregroundStyle(.white)
-        .textFieldStyle(.plain)
-        .padding(.horizontal, 8)
-        .background(.black)
-        .focusable()
-        .onTapGesture { selectedElementID = element.id }
+      EditableTextField(
+        text: textBinding(for: element.id),
+        font: .monospacedSystemFont(ofSize: 14, weight: .bold),
+        textColor: .white,
+        backgroundColor: .black,
+        isBordered: false,
+        drawsBackground: true,
+        onFocus: { selectedElementID = element.id }
+      )
+      .padding(.horizontal, 8)
+      .background(.black)
     case .text:
       textElementView(element)
     default:
@@ -1243,39 +1246,48 @@ private struct PrintCanvasView: View {
     return Group {
       switch element.role {
       case .title:
-        TextField("", text: textBinding(for: element.id))
-          .font(.system(size: 34, weight: .black, design: .default))
-          .textCase(.uppercase)
-          .minimumScaleFactor(0.35)
-          .textFieldStyle(.plain)
-          .focusable()
+        EditableTextField(
+          text: textBinding(for: element.id),
+          font: .systemFont(ofSize: 34, weight: .black),
+          isBordered: false,
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
+        )
       case .whenWhere:
-        TextEditor(text: textBinding(for: element.id))
-          .font(.system(.caption, design: .monospaced).weight(.semibold))
-          .scrollContentBackground(.hidden)
+        EditableTextView(
+          text: textBinding(for: element.id),
+          font: .monospacedSystemFont(ofSize: 11, weight: .semibold),
+          isBordered: false,
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
+        )
       case .details:
-        TextEditor(text: textBinding(for: element.id))
-          .font(.system(size: 13, weight: .medium, design: .monospaced))
-          .lineSpacing(3)
-          .scrollContentBackground(.hidden)
+        EditableTextView(
+          text: textBinding(for: element.id),
+          font: .monospacedSystemFont(ofSize: 13, weight: .medium),
+          isBordered: false,
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
+        )
       case .callToAction:
-        TextField("", text: textBinding(for: element.id))
-          .font(.system(.callout, design: .monospaced).weight(.bold))
-          .minimumScaleFactor(0.5)
-          .textFieldStyle(.plain)
-          .focusable()
+        EditableTextField(
+          text: textBinding(for: element.id),
+          font: .monospacedSystemFont(ofSize: 14, weight: .bold),
+          isBordered: false,
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
+        )
       default:
-        TextField("", text: textBinding(for: element.id))
-          .font(.system(.body, design: .monospaced).weight(.semibold))
-          .minimumScaleFactor(0.5)
-          .textFieldStyle(.plain)
-          .focusable()
+        EditableTextField(
+          text: textBinding(for: element.id),
+          font: .monospacedSystemFont(ofSize: 13, weight: .semibold),
+          isBordered: false,
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
+        )
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .onTapGesture {
-      selectedElementID = element.id
-    }
   }
 
   private func textBinding(for id: PrintElement.ID) -> Binding<String> {
@@ -1359,7 +1371,8 @@ private struct InspectorView: View {
 
       Section("Selected") {
         if let selectedElement, let selectedElementID {
-          TextField("Name", text: labelBinding(for: selectedElementID))
+          EditableTextField(text: labelBinding(for: selectedElementID), placeholder: "Name")
+            .frame(height: 26)
 
           Picker("Type", selection: typeBinding(for: selectedElementID)) {
             ForEach(PrintElementType.allCases) { type in
@@ -1378,8 +1391,8 @@ private struct InspectorView: View {
           Toggle("Reference only", isOn: referenceOnlyBinding(for: selectedElementID))
 
           if selectedElement.type == .text || selectedElement.type == .chip || selectedElement.text != nil {
-            TextField("Visible text", text: textBinding(for: selectedElementID), axis: .vertical)
-              .lineLimit(1...4)
+            EditableTextView(text: textBinding(for: selectedElementID), font: .systemFont(ofSize: 13))
+              .frame(minHeight: 72)
           }
 
           LabeledContent("ID", value: selectedElement.id)
@@ -1546,6 +1559,155 @@ private extension ContentRole {
     }
   }
 }
+
+#if os(macOS)
+private struct EditableTextField: NSViewRepresentable {
+  @Binding var text: String
+  var placeholder: String = ""
+  var font: NSFont = .systemFont(ofSize: NSFont.systemFontSize)
+  var textColor: NSColor = .labelColor
+  var backgroundColor: NSColor = .textBackgroundColor
+  var isBordered: Bool = true
+  var drawsBackground: Bool = true
+  var onFocus: () -> Void = {}
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(text: $text, onFocus: onFocus)
+  }
+
+  func makeNSView(context: Context) -> NSTextField {
+    let textField = NSTextField(string: text)
+    textField.placeholderString = placeholder
+    textField.delegate = context.coordinator
+    textField.font = font
+    textField.textColor = textColor
+    textField.backgroundColor = backgroundColor
+    textField.isBordered = isBordered
+    textField.drawsBackground = drawsBackground
+    textField.isEditable = true
+    textField.isSelectable = true
+    textField.focusRingType = isBordered ? .default : .none
+    textField.lineBreakMode = .byClipping
+    textField.cell?.isScrollable = true
+    return textField
+  }
+
+  func updateNSView(_ textField: NSTextField, context: Context) {
+    context.coordinator.text = $text
+    context.coordinator.onFocus = onFocus
+    textField.placeholderString = placeholder
+    textField.font = font
+    textField.textColor = textColor
+    textField.backgroundColor = backgroundColor
+    textField.isBordered = isBordered
+    textField.drawsBackground = drawsBackground
+    textField.focusRingType = isBordered ? .default : .none
+
+    if textField.stringValue != text {
+      textField.stringValue = text
+    }
+  }
+
+  final class Coordinator: NSObject, NSTextFieldDelegate {
+    var text: Binding<String>
+    var onFocus: () -> Void
+
+    init(text: Binding<String>, onFocus: @escaping () -> Void) {
+      self.text = text
+      self.onFocus = onFocus
+    }
+
+    func controlTextDidBeginEditing(_ notification: Notification) {
+      onFocus()
+    }
+
+    func controlTextDidChange(_ notification: Notification) {
+      guard let textField = notification.object as? NSTextField else { return }
+      text.wrappedValue = textField.stringValue
+    }
+  }
+}
+
+private struct EditableTextView: NSViewRepresentable {
+  @Binding var text: String
+  var font: NSFont = .systemFont(ofSize: NSFont.systemFontSize)
+  var textColor: NSColor = .labelColor
+  var backgroundColor: NSColor = .textBackgroundColor
+  var isBordered: Bool = true
+  var drawsBackground: Bool = true
+  var onFocus: () -> Void = {}
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(text: $text, onFocus: onFocus)
+  }
+
+  func makeNSView(context: Context) -> NSScrollView {
+    let scrollView = NSScrollView()
+    scrollView.hasVerticalScroller = true
+    scrollView.hasHorizontalScroller = false
+    scrollView.borderType = isBordered ? .bezelBorder : .noBorder
+    scrollView.drawsBackground = drawsBackground
+    scrollView.backgroundColor = backgroundColor
+
+    let textView = NSTextView()
+    textView.string = text
+    textView.delegate = context.coordinator
+    textView.font = font
+    textView.textColor = textColor
+    textView.backgroundColor = backgroundColor
+    textView.drawsBackground = drawsBackground
+    textView.isEditable = true
+    textView.isSelectable = true
+    textView.isRichText = false
+    textView.allowsUndo = true
+    textView.textContainerInset = NSSize(width: 4, height: 4)
+    textView.textContainer?.widthTracksTextView = true
+    textView.autoresizingMask = [.width]
+
+    scrollView.documentView = textView
+    context.coordinator.textView = textView
+    return scrollView
+  }
+
+  func updateNSView(_ scrollView: NSScrollView, context: Context) {
+    context.coordinator.text = $text
+    context.coordinator.onFocus = onFocus
+    scrollView.borderType = isBordered ? .bezelBorder : .noBorder
+    scrollView.drawsBackground = drawsBackground
+    scrollView.backgroundColor = backgroundColor
+
+    guard let textView = scrollView.documentView as? NSTextView else { return }
+    textView.font = font
+    textView.textColor = textColor
+    textView.backgroundColor = backgroundColor
+    textView.drawsBackground = drawsBackground
+
+    if textView.string != text {
+      textView.string = text
+    }
+  }
+
+  final class Coordinator: NSObject, NSTextViewDelegate {
+    var text: Binding<String>
+    var onFocus: () -> Void
+    weak var textView: NSTextView?
+
+    init(text: Binding<String>, onFocus: @escaping () -> Void) {
+      self.text = text
+      self.onFocus = onFocus
+    }
+
+    func textDidBeginEditing(_ notification: Notification) {
+      onFocus()
+    }
+
+    func textDidChange(_ notification: Notification) {
+      guard let textView = notification.object as? NSTextView else { return }
+      text.wrappedValue = textView.string
+    }
+  }
+}
+#endif
 
 #Preview("Print Union App") {
   ContentView()
