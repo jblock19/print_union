@@ -27,6 +27,7 @@ struct ContentView: View {
         importError: importError,
         selectedElementID: $selectedElementID,
         onImport: { isImporterPresented = true },
+        onReset: resetWorktable,
         onDropSources: handleDrop
       )
       .frame(minWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
@@ -142,6 +143,13 @@ struct ContentView: View {
     importedSource = source
     document = document.applyingInitialStyleMapProposal(for: source)
     selectedElementID = document.elements.first(where: { $0.type == .text })?.id ?? document.elements.first?.id
+  }
+
+  private func resetWorktable() {
+    document = PrintUnionDefaults.sampleDocument
+    selectedElementID = nil
+    importedSource = nil
+    importError = nil
   }
 }
 
@@ -466,6 +474,7 @@ private struct WorktableView: View {
   let importError: String?
   @Binding var selectedElementID: PrintElement.ID?
   let onImport: () -> Void
+  let onReset: () -> Void
   let onDropSources: ([NSItemProvider]) -> Bool
 
   var body: some View {
@@ -479,6 +488,13 @@ private struct WorktableView: View {
         }
 
         Spacer()
+
+        Button {
+          onReset()
+        } label: {
+          Label("Reset", systemImage: "arrow.counterclockwise")
+        }
+        .buttonStyle(.bordered)
 
         Button {
           onImport()
