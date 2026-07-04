@@ -1,4 +1,5 @@
 import PrintUnionCore
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -15,6 +16,7 @@ struct ContentView: View {
 
   var selectedElement: PrintElement? {
     document.elements.first { $0.id == selectedElementID }
+      ?? document.setup.proposedElements.first { $0.id == selectedElementID }
   }
 
   var body: some View {
@@ -50,7 +52,10 @@ struct ContentView: View {
 
     do {
       guard let url = try result.get().first else { return }
-      importedSource = try ImportedSource.load(from: url)
+      let source = try ImportedSource.load(from: url)
+      importedSource = source
+      document = document.applyingInitialStyleMapProposal(for: source)
+      selectedElementID = document.elements.first(where: { $0.type == .text })?.id ?? document.elements.first?.id
     } catch {
       importError = error.localizedDescription
     }
@@ -62,6 +67,8 @@ struct ImportedSource: Equatable, Sendable {
   var typeLabel: String
   var byteCount: Int
   var imageData: Data?
+  var pixelWidth: Int?
+  var pixelHeight: Int?
 
   static func load(from url: URL) throws -> ImportedSource {
     let didStartAccessing = url.startAccessingSecurityScopedResource()
@@ -75,17 +82,203 @@ struct ImportedSource: Equatable, Sendable {
     let type = UTType(filenameExtension: url.pathExtension)
     let isImage = type?.conforms(to: .image) == true
     let isPDF = type?.conforms(to: .pdf) == true
+    let image = isImage ? NSImage(data: data) : nil
+    let pixelSize = image?.bestPixelSize
 
     return ImportedSource(
       fileName: url.lastPathComponent,
       typeLabel: isPDF ? "PDF source" : isImage ? "Image source" : "Source file",
       byteCount: data.count,
-      imageData: isImage ? data : nil
+      imageData: isImage ? data : nil,
+      pixelWidth: pixelSize?.width,
+      pixelHeight: pixelSize?.height
     )
   }
 
   var byteCountLabel: String {
     ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
+  }
+
+  var dimensionLabel: String {
+    guard let pixelWidth, let pixelHeight else {
+      return "size pending"
+    }
+
+    return "\(pixelWidth) x \(pixelHeight) px"
+  }
+}
+
+private extension PrintUnionDocument {
+  func applyingInitialStyleMapProposal(for source: ImportedSource) -> PrintUnionDocument {
+    var next = self
+    next.intent = .eventAnnouncement
+    next.canvas = inferredCanvas(for: source)
+    next.styleFingerprint = StyleFingerprint(
+      family: "source-derived",
+      traits: [
+        "needs-review",
+        "print-source",
+        source.imageData == nil ? "pdf-or-unknown-size" : "image-source",
+        "style-map-proposal"
+      ],
+      palette: ["#111111", "#f7f7f4"],
+      background: [
+        "proposal": "paper field, texture, and ink density should be sampled from source",
+        "sourceFile": source.fileName
+      ],
+      typography: [
+        "proposal": "identify headline, metadata, body, chip, and footer roles before exact font matching",
+        "confidence": "low"
+      ],
+      grid: [
+        "proposal": "detect outer bounds, safe margin, rows, columns, dividers, and alignment anchors",
+        "confidence": "medium"
+      ],
+      texture: [
+        "proposal": "preserve paper grain and photocopy/noise character as reusable background layers",
+        "confidence": "medium"
+      ]
+    )
+
+    let proposedElements = initialProposalElements(for: source)
+    next.setup = StyleMapSetup(
+      proposedElements: proposedElements,
+      ambiguities: [
+        SetupAmbiguity(
+          id: "source-purpose",
+          question: "What kind of public invitation is this source: event, open call, workshop, meeting, mutual aid notice, or something else?",
+          regionId: nil
+        ),
+        SetupAmbiguity(
+          id: "editable-vs-atmosphere",
+          question: "Which source marks are content that should stay editable, and which are atmosphere or print texture?",
+          regionId: "source-reference"
+        ),
+        SetupAmbiguity(
+          id: "footer-mark",
+          question: "Should footer marks like logos, QR codes, stamps, or signatures become reusable fields or fixed reference art?",
+          regionId: "footer-action-region"
+        )
+      ]
+    )
+    next.elements = proposedElements.filter { $0.type != .referenceImage }
+
+    return next
+  }
+
+  private func inferredCanvas(for source: ImportedSource) -> PrintCanvas {
+    guard let width = source.pixelWidth, let height = source.pixelHeight, height > 0 else {
+      return PrintUnionDefaults.defaultCanvas
+    }
+
+    let ratio = Double(width) / Double(height)
+    if ratio > 1.15 {
+      return PrintCanvas(formatId: "letter", width: 11, height: 8.5, unit: .inches, orientation: .landscape)
+    }
+
+    return PrintUnionDefaults.defaultCanvas
+  }
+
+  private func initialProposalElements(for source: ImportedSource) -> [PrintElement] {
+    [
+      PrintElement(
+        id: "source-reference",
+        type: .referenceImage,
+        label: "Source reference",
+        frame: ElementFrame(x: 0, y: 0, width: 1, height: 1),
+        editable: false,
+        referenceOnly: true,
+        style: [
+          "fileName": source.fileName,
+          "dimensions": source.dimensionLabel,
+          "purpose": "kept as visual evidence during setup"
+        ]
+      ),
+      PrintElement(
+        id: "page-background",
+        type: .background,
+        label: "Page background / paper",
+        frame: ElementFrame(x: 0, y: 0, width: 1, height: 1),
+        style: [
+          "color": "#f7f7f4",
+          "texture": "sample from source"
+        ]
+      ),
+      PrintElement(
+        id: "page-bounds",
+        type: .border,
+        label: "Outer border / print bounds",
+        frame: ElementFrame(x: 0.045, y: 0.045, width: 0.91, height: 0.91),
+        editable: true,
+        style: ["stroke": "thin black rule", "confidence": "medium"]
+      ),
+      PrintElement(
+        id: "divider-system",
+        type: .group,
+        label: "Rules, dividers, and grid",
+        frame: ElementFrame(x: 0.045, y: 0.09, width: 0.91, height: 0.82),
+        style: ["contains": "horizontal rows, vertical gutters, alignment guides"]
+      ),
+      PrintElement(
+        id: "headline-region",
+        type: .text,
+        label: "Primary headline region",
+        role: .title,
+        frame: ElementFrame(x: 0.12, y: 0.17, width: 0.74, height: 0.2),
+        text: "EVENT TITLE",
+        style: ["fontRole": "display", "case": "uppercase", "weight": "heavy"]
+      ),
+      PrintElement(
+        id: "metadata-rows",
+        type: .group,
+        label: "Host, date, time, and venue rows",
+        role: .whenWhere,
+        frame: ElementFrame(x: 0.1, y: 0.38, width: 0.8, height: 0.14),
+        style: ["typography": "small mono or ledger text", "layout": "ruled rows"]
+      ),
+      PrintElement(
+        id: "label-chip-group",
+        type: .chip,
+        label: "Invitation chip / emphasis label",
+        role: .mainInvitation,
+        frame: ElementFrame(x: 0.12, y: 0.55, width: 0.34, height: 0.045),
+        text: "TAG",
+        style: ["treatment": "black ink reversal", "editableText": "true"]
+      ),
+      PrintElement(
+        id: "body-copy-region",
+        type: .text,
+        label: "Body copy block",
+        role: .details,
+        frame: ElementFrame(x: 0.12, y: 0.62, width: 0.63, height: 0.2),
+        text: "DETAILS",
+        style: ["fontRole": "body", "measure": "narrow", "texture": "typewriter-like"]
+      ),
+      PrintElement(
+        id: "footer-action-region",
+        type: .group,
+        label: "Footer action, QR, and mark",
+        role: .callToAction,
+        frame: ElementFrame(x: 0.09, y: 0.84, width: 0.8, height: 0.1),
+        style: ["contains": "call to action, QR placeholder, logo or signature mark"]
+      )
+    ]
+  }
+}
+
+private extension NSImage {
+  var bestPixelSize: (width: Int, height: Int)? {
+    guard let representation = representations.max(by: {
+      ($0.pixelsWide * $0.pixelsHigh) < ($1.pixelsWide * $1.pixelsHigh)
+    }) else {
+      return nil
+    }
+
+    guard representation.pixelsWide > 0, representation.pixelsHigh > 0 else {
+      return nil
+    }
+
+    return (representation.pixelsWide, representation.pixelsHigh)
   }
 }
 
@@ -170,7 +363,7 @@ private struct SourcePreviewPanel: View {
           Text(importedSource.fileName)
             .font(.callout.weight(.semibold))
             .lineLimit(2)
-          Text("\(importedSource.typeLabel) / \(importedSource.byteCountLabel)")
+          Text("\(importedSource.typeLabel) / \(importedSource.dimensionLabel) / \(importedSource.byteCountLabel)")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
@@ -226,13 +419,17 @@ private struct ElementListPanel: View {
   let document: PrintUnionDocument
   @Binding var selectedElementID: PrintElement.ID?
 
+  private var visibleElements: [PrintElement] {
+    document.setup.proposedElements.isEmpty ? document.elements : document.setup.proposedElements
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Label("Elements", systemImage: "rectangle.3.group")
         .font(.headline)
 
       VStack(spacing: 6) {
-        ForEach(document.elements) { element in
+        ForEach(visibleElements) { element in
           Button {
             selectedElementID = element.id
           } label: {
@@ -257,6 +454,31 @@ private struct ElementListPanel: View {
             )
           }
           .buttonStyle(.plain)
+        }
+      }
+
+      if !document.setup.ambiguities.isEmpty {
+        VStack(alignment: .leading, spacing: 8) {
+          Label("Needs Review", systemImage: "questionmark.bubble")
+            .font(.headline)
+            .padding(.top, 8)
+
+          ForEach(document.setup.ambiguities) { ambiguity in
+            Text(ambiguity.question)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+              .padding(10)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                  .fill(Color(nsColor: .textBackgroundColor))
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                  .stroke(Color.black.opacity(0.08), lineWidth: 1)
+              )
+          }
         }
       }
     }
