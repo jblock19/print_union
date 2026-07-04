@@ -21,6 +21,7 @@ npm run dev -- --port 3030
 - Local browser persistence through `localStorage` and IndexedDB.
 - Public flyer sample photos and Classifieds category icons.
 - Starter architecture docs for style extraction and modular template JSON.
+- A Swift-first starter under `apple/PrintUnion` with `PrintUnionCore` schema models and a native SwiftUI app shell.
 
 ## What Is Not Included
 
@@ -36,3 +37,11 @@ The first product milestone is a style importer:
 2. Detect the visual system: background, borders, divider lines, spacing, element boxes, color palette, and type roles.
 3. Convert that style fingerprint into editable template elements.
 4. Render those elements in the existing flyer editor.
+
+## Apple Starter
+
+```bash
+cd apple/PrintUnion
+swift test
+swift run PrintUnionApp
+```
