@@ -360,6 +360,15 @@ public enum PrintUnionDefaults {
     safeMargin: PrintMeasurement(value: 0.25, unit: .inches)
   )
 
+  public static let blankDocument = PrintUnionDocument(
+    content: InvitationContent(category: "public-invitation"),
+    styleFingerprint: StyleFingerprint(
+      family: "blank-worktable",
+      traits: ["awaiting-source"],
+      palette: ["#111111", "#f7f7f4"]
+    )
+  )
+
   public static let sampleDocument = PrintUnionDocument(
     content: InvitationContent(
       category: "public-invitation",

@@ -8,7 +8,7 @@ import AppKit
 #endif
 
 struct ContentView: View {
-  @State private var document = PrintUnionDefaults.sampleDocument
+  @State private var document = PrintUnionDefaults.blankDocument
   @State private var selectedElementID: PrintElement.ID?
   @State private var importedSource: ImportedSource?
   @State private var isImporterPresented = false
@@ -146,7 +146,7 @@ struct ContentView: View {
   }
 
   private func resetWorktable() {
-    document = PrintUnionDefaults.sampleDocument
+    document = PrintUnionDefaults.blankDocument
     selectedElementID = nil
     importedSource = nil
     importError = nil
@@ -514,16 +514,24 @@ private struct WorktableView: View {
           VStack(alignment: .leading, spacing: 18) {
             SourcePreviewPanel(importedSource: importedSource, onImport: onImport, onDropSources: onDropSources)
 
-            RepurposeContentPanel(document: $document, selectedElementID: $selectedElementID)
+            if importedSource != nil {
+              RepurposeContentPanel(document: $document, selectedElementID: $selectedElementID)
 
-            ElementListPanel(document: document, selectedElementID: $selectedElementID)
+              ElementListPanel(document: document, selectedElementID: $selectedElementID)
+            }
           }
           .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .frame(width: 330)
         .scrollIndicators(.visible)
 
-        PrintCanvasView(document: document, selectedElementID: $selectedElementID)
+        PrintCanvasView(
+          document: $document,
+          hasSource: importedSource != nil,
+          selectedElementID: $selectedElementID,
+          onImport: onImport,
+          onDropSources: onDropSources
+        )
           .frame(minWidth: 420, maxWidth: .infinity, minHeight: 620, maxHeight: .infinity)
       }
       .frame(maxHeight: .infinity, alignment: .top)
@@ -923,13 +931,17 @@ private struct ElementListPanel: View {
 }
 
 private struct PrintCanvasView: View {
-  let document: PrintUnionDocument
+  @Binding var document: PrintUnionDocument
+  let hasSource: Bool
   @Binding var selectedElementID: PrintElement.ID?
+  let onImport: () -> Void
+  let onDropSources: ([NSItemProvider]) -> Bool
+  @State private var isDropTargeted = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text(document.setup.proposedElements.isEmpty ? "Editable Template" : "Style Map Proposal")
+        Text(hasSource ? "Repurpose This Flyer" : "Blank Print Canvas")
           .font(.title2.bold())
         Spacer()
         Label("Print-ready preview", systemImage: "printer")
@@ -947,6 +959,9 @@ private struct PrintCanvasView: View {
                 pageBackground
                 safeAreaOverlay
                 renderedElements
+                if !hasSource {
+                  blankCanvasPrompt
+                }
               }
               .frame(width: page.width, height: page.height)
               .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -960,10 +975,42 @@ private struct PrintCanvasView: View {
             .padding(20)
           }
           .scrollIndicators(.visible)
+          .onDrop(
+            of: [UTType.fileURL.identifier, UTType.image.identifier, UTType.pdf.identifier],
+            isTargeted: $isDropTargeted,
+            perform: onDropSources
+          )
         }
       }
       .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
+  }
+
+  private var blankCanvasPrompt: some View {
+    VStack(spacing: 14) {
+      Image(systemName: isDropTargeted ? "arrow.down.doc.fill" : "doc.badge.plus")
+        .font(.system(size: 38))
+        .foregroundStyle(Color.accentColor)
+
+      VStack(spacing: 4) {
+        Text(isDropTargeted ? "Drop to start" : "Drop a flyer screenshot, poster, or PDF here")
+          .font(.headline)
+        Text("Use an existing flyer’s design language as a reusable print template.")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .multilineTextAlignment(.center)
+      }
+
+      Button("Choose File", action: onImport)
+        .buttonStyle(.borderedProminent)
+    }
+    .padding(24)
+    .frame(maxWidth: 340)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .stroke(Color.black.opacity(0.08), lineWidth: 1)
+    )
   }
 
   private var pageBackground: some View {
@@ -1013,11 +1060,15 @@ private struct PrintCanvasView: View {
     case .background:
       Color.clear
     case .chip:
-      Text(element.text ?? element.label)
+      TextField("", text: textBinding(for: element.id))
         .font(.system(.headline, design: .monospaced).weight(.bold))
         .foregroundStyle(.white)
+        .textFieldStyle(.plain)
         .padding(.horizontal, 8)
         .background(.black)
+        .onTapGesture {
+          selectedElementID = element.id
+        }
     case .text:
       textElementView(element)
     default:
@@ -1034,38 +1085,76 @@ private struct PrintCanvasView: View {
   }
 
   private func textElementView(_ element: PrintElement) -> some View {
-    let text = element.text ?? element.label
-
     return Group {
       switch element.role {
       case .title:
-        Text(text)
+        TextField("", text: textBinding(for: element.id))
           .font(.system(size: 34, weight: .black, design: .default))
           .textCase(.uppercase)
           .minimumScaleFactor(0.35)
+          .textFieldStyle(.plain)
       case .whenWhere:
-        Text(text)
+        TextField("", text: textBinding(for: element.id), axis: .vertical)
           .font(.system(.caption, design: .monospaced).weight(.semibold))
           .lineLimit(3)
           .minimumScaleFactor(0.5)
+          .textFieldStyle(.plain)
       case .details:
-        Text(text)
+        TextField("", text: textBinding(for: element.id), axis: .vertical)
           .font(.system(size: 13, weight: .medium, design: .monospaced))
           .lineSpacing(3)
           .lineLimit(8)
           .minimumScaleFactor(0.55)
+          .textFieldStyle(.plain)
       case .callToAction:
-        Text(text)
+        TextField("", text: textBinding(for: element.id), axis: .vertical)
           .font(.system(.callout, design: .monospaced).weight(.bold))
           .lineLimit(2)
           .minimumScaleFactor(0.5)
+          .textFieldStyle(.plain)
       default:
-        Text(text)
+        TextField("", text: textBinding(for: element.id), axis: .vertical)
           .font(.system(.body, design: .monospaced).weight(.semibold))
           .minimumScaleFactor(0.5)
+          .textFieldStyle(.plain)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    .onTapGesture {
+      selectedElementID = element.id
+    }
+  }
+
+  private func textBinding(for id: PrintElement.ID) -> Binding<String> {
+    Binding(
+      get: { document.element(withID: id)?.text ?? "" },
+      set: { value in
+        let role = document.element(withID: id)?.role
+        document.updateElement(withID: id) { element in
+          element.text = value
+        }
+        syncContent(for: role, text: value)
+      }
+    )
+  }
+
+  private func syncContent(for role: ContentRole?, text: String) {
+    guard let role else { return }
+
+    switch role {
+    case .title:
+      document.content.title = text
+    case .mainInvitation:
+      document.content.mainInvitation = text
+    case .details:
+      document.content.details = text
+    case .callToAction:
+      document.content.callToAction = text
+    case .whenWhere:
+      document.content.whenWhere = text
+    default:
+      break
+    }
   }
 
   @ViewBuilder

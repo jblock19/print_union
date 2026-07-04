@@ -23,3 +23,12 @@ import Foundation
   #expect(document.printSettings.cropMarks)
   #expect(document.exportSettings.formats.contains("pdf"))
 }
+
+@Test func blankDocumentStartsWithoutFlyerContent() {
+  let document = PrintUnionDefaults.blankDocument
+
+  #expect(document.elements.isEmpty)
+  #expect(document.setup.proposedElements.isEmpty)
+  #expect(document.content.title.isEmpty)
+  #expect(document.styleFingerprint.traits.contains("awaiting-source"))
+}
