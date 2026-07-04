@@ -1,6 +1,59 @@
 # Template Schema Draft
 
-The importer should output two related objects: a style fingerprint and editable elements.
+The Print Union document is the shared contract between the setup page, editor, extraction services, Supabase, and future macOS app. It combines print constraints, semantic invitation content, style extraction, and editable elements.
+
+The first code version lives in `lib/printUnionSchema.js`.
+
+## Document Shape
+
+```json
+{
+  "schemaVersion": "0.1.0",
+  "kind": "print-union-document",
+  "intent": "event-announcement",
+  "canvas": {
+    "formatId": "letter",
+    "width": 8.5,
+    "height": 11,
+    "unit": "in",
+    "orientation": "portrait"
+  },
+  "printSettings": {
+    "bleed": { "value": 0.125, "unit": "in" },
+    "safeMargin": { "value": 0.25, "unit": "in" },
+    "cropMarks": true,
+    "grayscalePreview": false,
+    "photocopyPreview": false
+  },
+  "content": {},
+  "styleFingerprint": {},
+  "elements": [],
+  "setup": {},
+  "exportSettings": {}
+}
+```
+
+## Content Roles
+
+The existing flyer tool already has the core public-invitation model. Print Union keeps that spine and makes it portable:
+
+```json
+{
+  "category": "activity-partners",
+  "hostPrefix": "Hosted by",
+  "host": "Bolm Arts",
+  "hostContext": "A monthly critique night for working artists.",
+  "title": "Critique Night",
+  "whenWhere": "07.09.2026 / 5:30-8:00PM / Hive Mind Studios",
+  "mainInvitation": "All levels welcome",
+  "details": "Bring complete or in-progress work for feedback.",
+  "accessibilityNote": "First-timers welcome.",
+  "callToAction": "RSVP",
+  "contact": "bolmarts.org/events"
+}
+```
+
+These roles are not meant to turn Print Union into event-management software. They exist so the print hierarchy knows what must survive: title, time, place, host, access note, and call to action.
 
 ## Style Fingerprint
 
@@ -41,6 +94,8 @@ The importer should output two related objects: a style fingerprint and editable
 ```
 
 ## Editable Elements
+
+Every visible piece that should survive reconstruction becomes an editable element or a locked reference element.
 
 ```json
 {
@@ -83,5 +138,26 @@ The importer should output two related objects: a style fingerprint and editable
       "height": 0.08
     }
   ]
+}
+```
+
+## Setup State
+
+The Style Map page should preserve the proposal and the user's decisions:
+
+```json
+{
+  "setup": {
+    "proposedElements": [],
+    "ambiguities": [
+      {
+        "id": "ambiguous-bottom-mark",
+        "question": "Should this mark become a logo image or editable text?",
+        "regionId": "bottom-center",
+        "resolvedAs": null
+      }
+    ],
+    "userConfirmedAt": null
+  }
 }
 ```

@@ -6,19 +6,26 @@ Print Union should treat the template JSON as the product contract. The web app,
 
 ```text
 Upload
+  -> Style Map intent and print setup
   -> Image normalization
-  -> Style extraction
+  -> Python/OpenCV geometry extraction
+  -> AI style interpretation
   -> Style fingerprint
+  -> User-confirmed element schema
   -> Editable template JSON
   -> Renderer/editor
-  -> Export or save
+  -> Print export or save
 ```
 
 ## First Product Milestone
 
 Start with one style family: a black-and-white gallery ledger flyer with paper texture, dotted dividers, strict rows, inverse label chips, QR/footer blocks, and large headline typography.
 
-The first importer does not need to understand the exact text. It should detect visual structure and produce editable placeholders.
+The first importer should understand content roles enough to protect the public invitation: title, date/time, place, host, access note, and call to action. It should not require perfect OCR to succeed. Text can remain placeholder-based while the style and structure are reconstructed.
+
+## Product Ethos
+
+Print Union is a print-first tool for group, community, and event invitations. It should make flyers that still feel like they belong on a wall, table, pole, counter, or photocopier glass.
 
 ## Platform Strategy
 
