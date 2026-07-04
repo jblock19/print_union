@@ -19,15 +19,33 @@ struct ContentView: View {
       ?? document.setup.proposedElements.first { $0.id == selectedElementID }
   }
 
+  private var currentGuideStep: GuideStep {
+    if importedSource == nil {
+      return .uploadSource
+    }
+
+    if document.setup.userConfirmedAt == nil {
+      return .replaceContent
+    }
+
+    if selectedElementID == nil {
+      return .editOnCanvas
+    }
+
+    return .reviewAndPrint
+  }
+
   var body: some View {
     HStack(spacing: 0) {
       WorktableView(
         document: $document,
         importedSource: importedSource,
         importError: importError,
+        guideStep: currentGuideStep,
         selectedElementID: $selectedElementID,
         onImport: { isImporterPresented = true },
         onReset: resetWorktable,
+        onGuideAction: handleGuideAction,
         onDropSources: handleDrop
       )
       .frame(minWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
@@ -142,7 +160,7 @@ struct ContentView: View {
   private func processImportedSource(_ source: ImportedSource) {
     importedSource = source
     document = document.applyingInitialStyleMapProposal(for: source)
-    selectedElementID = document.elements.first(where: { $0.type == .text })?.id ?? document.elements.first?.id
+    selectedElementID = nil
   }
 
   private func resetWorktable() {
@@ -150,6 +168,19 @@ struct ContentView: View {
     selectedElementID = nil
     importedSource = nil
     importError = nil
+  }
+
+  private func handleGuideAction(_ step: GuideStep) {
+    switch step {
+    case .uploadSource:
+      isImporterPresented = true
+    case .replaceContent:
+      selectedElementID = document.firstElementID(for: .title)
+    case .editOnCanvas:
+      selectedElementID = document.firstElementID(for: .title)
+    case .reviewAndPrint:
+      selectedElementID = document.firstElementID(for: .callToAction) ?? document.elements.first?.id
+    }
   }
 }
 
@@ -226,6 +257,55 @@ struct ImportedSource: Equatable, Sendable {
     }
 
     return "\(pixelWidth) x \(pixelHeight) px"
+  }
+}
+
+enum GuideStep: Int, CaseIterable, Identifiable {
+  case uploadSource = 1
+  case replaceContent
+  case editOnCanvas
+  case reviewAndPrint
+
+  var id: Int { rawValue }
+
+  var title: String {
+    switch self {
+    case .uploadSource: "Start with a source flyer"
+    case .replaceContent: "Replace the message"
+    case .editOnCanvas: "Edit directly on the flyer"
+    case .reviewAndPrint: "Review the print version"
+    }
+  }
+
+  var message: String {
+    switch self {
+    case .uploadSource:
+      "Drop a screenshot, poster, or PDF onto the canvas. Print Union will use it as the design source."
+    case .replaceContent:
+      "Use the Content Slots panel to write your title, host, date, details, and RSVP while keeping the source’s visual structure."
+    case .editOnCanvas:
+      "Click into text on the flyer preview to revise it in place. Select a slot to fine-tune its role or bounds in the inspector."
+    case .reviewAndPrint:
+      "Check the page margins, design parts, and final wording. Print export comes next; for now this is the final review step."
+    }
+  }
+
+  var actionTitle: String {
+    switch self {
+    case .uploadSource: "Choose File"
+    case .replaceContent: "Jump to Title"
+    case .editOnCanvas: "Select Title"
+    case .reviewAndPrint: "Check Footer"
+    }
+  }
+
+  var iconName: String {
+    switch self {
+    case .uploadSource: "doc.badge.plus"
+    case .replaceContent: "text.cursor"
+    case .editOnCanvas: "pencil.and.outline"
+    case .reviewAndPrint: "printer"
+    }
   }
 }
 
@@ -472,9 +552,11 @@ private struct WorktableView: View {
   @Binding var document: PrintUnionDocument
   let importedSource: ImportedSource?
   let importError: String?
+  let guideStep: GuideStep
   @Binding var selectedElementID: PrintElement.ID?
   let onImport: () -> Void
   let onReset: () -> Void
+  let onGuideAction: (GuideStep) -> Void
   let onDropSources: ([NSItemProvider]) -> Bool
 
   var body: some View {
@@ -508,6 +590,8 @@ private struct WorktableView: View {
         Label(importError, systemImage: "exclamationmark.triangle")
           .foregroundStyle(.orange)
       }
+
+      GuideCoachCard(step: guideStep, onAction: onGuideAction)
 
       HStack(alignment: .top, spacing: 24) {
         ScrollView {
@@ -643,6 +727,67 @@ private struct SourcePreviewPanel: View {
 
   private func platformImage(from data: Data) -> NSImage? {
     NSImage(data: data)
+  }
+}
+
+private struct GuideCoachCard: View {
+  let step: GuideStep
+  let onAction: (GuideStep) -> Void
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 12) {
+      Image(systemName: step.iconName)
+        .font(.title3)
+        .foregroundStyle(Color.accentColor)
+        .frame(width: 28)
+
+      VStack(alignment: .leading, spacing: 5) {
+        HStack(spacing: 8) {
+          Text("Step \(step.rawValue) of \(GuideStep.allCases.count)")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+          Text(step.title)
+            .font(.headline)
+        }
+
+        Text(step.message)
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      Spacer(minLength: 12)
+
+      actionButton
+    }
+    .padding(14)
+    .background(
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .fill(Color(nsColor: .controlBackgroundColor))
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .stroke(Color.accentColor.opacity(0.22), lineWidth: 1)
+    )
+  }
+
+  @ViewBuilder
+  private var actionButton: some View {
+    if step == .uploadSource {
+      Button {
+        onAction(step)
+      } label: {
+        Label(step.actionTitle, systemImage: "arrow.right")
+      }
+      .buttonStyle(.borderedProminent)
+    } else {
+      Button {
+        onAction(step)
+      } label: {
+        Label(step.actionTitle, systemImage: "arrow.right")
+      }
+      .buttonStyle(.bordered)
+    }
   }
 }
 
@@ -796,6 +941,8 @@ private struct RepurposeContentPanel: View {
         document.confirmElement(withID: id)
       }
     }
+    document.setup.userConfirmedAt = Date()
+    selectedElementID = document.firstElementID(for: .title)
   }
 }
 
