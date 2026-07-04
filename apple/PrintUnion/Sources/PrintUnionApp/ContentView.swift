@@ -18,14 +18,7 @@ struct ContentView: View {
   }
 
   var body: some View {
-    NavigationSplitView {
-      SidebarView(
-        document: document,
-        importedSource: importedSource,
-        selectedElementID: $selectedElementID,
-        onImport: { isImporterPresented = true }
-      )
-    } content: {
+    HStack(spacing: 0) {
       WorktableView(
         document: document,
         importedSource: importedSource,
@@ -33,12 +26,17 @@ struct ContentView: View {
         selectedElementID: $selectedElementID,
         onImport: { isImporterPresented = true }
       )
-        .padding(28)
-        .background(Color(nsColor: .windowBackgroundColor))
-    } detail: {
+      .frame(minWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
+      .padding(24)
+      .background(Color(nsColor: .windowBackgroundColor))
+
+      Divider()
+
       InspectorView(document: document, selectedElement: selectedElement)
+        .frame(width: 340)
+        .background(Color(nsColor: .controlBackgroundColor))
     }
-    .navigationTitle("Print Union")
+    .frame(minWidth: 1120, minHeight: 760)
     .fileImporter(
       isPresented: $isImporterPresented,
       allowedContentTypes: [.image, .pdf],
@@ -91,82 +89,6 @@ struct ImportedSource: Equatable, Sendable {
   }
 }
 
-private struct SidebarView: View {
-  let document: PrintUnionDocument
-  let importedSource: ImportedSource?
-  @Binding var selectedElementID: PrintElement.ID?
-  let onImport: () -> Void
-
-  var body: some View {
-    List(selection: $selectedElementID) {
-      Section("Source") {
-        Button {
-          onImport()
-        } label: {
-          Label(importedSource == nil ? "Import Flyer" : "Replace Source", systemImage: "square.and.arrow.down")
-        }
-
-        if let importedSource {
-          VStack(alignment: .leading, spacing: 3) {
-            Text(importedSource.fileName)
-              .font(.callout.weight(.semibold))
-              .lineLimit(2)
-            Text("\(importedSource.typeLabel) / \(importedSource.byteCountLabel)")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-          .padding(.vertical, 2)
-        }
-      }
-
-      Section("Intent") {
-        LabeledContent("Kind", value: document.intent.label)
-        LabeledContent("Size", value: "\(document.canvas.formatId.uppercased()) / \(document.canvas.orientation.rawValue)")
-      }
-
-      Section("Content Roles") {
-        roleRow("Title", document.content.title)
-        roleRow("When / Where", document.content.whenWhere)
-        roleRow("Host", document.content.host)
-        roleRow("Invitation", document.content.mainInvitation)
-        roleRow("CTA", document.content.callToAction)
-      }
-
-      Section("Elements") {
-        ForEach(document.elements) { element in
-          Label(element.label, systemImage: iconName(for: element.type))
-            .tag(element.id)
-        }
-      }
-    }
-    .listStyle(.sidebar)
-  }
-
-  private func roleRow(_ label: String, _ value: String) -> some View {
-    VStack(alignment: .leading, spacing: 3) {
-      Text(label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text(value.isEmpty ? "Not set" : value)
-        .lineLimit(2)
-    }
-    .padding(.vertical, 2)
-  }
-
-  private func iconName(for type: PrintElementType) -> String {
-    switch type {
-    case .background, .texture: "square.fill"
-    case .border, .divider, .guide: "line.3.horizontal"
-    case .text: "textformat"
-    case .chip: "tag"
-    case .imagePlaceholder, .referenceImage: "photo"
-    case .qrPlaceholder: "qrcode"
-    case .logoMark, .handwrittenMark: "signature"
-    case .group: "rectangle.3.group"
-    }
-  }
-}
-
 private struct WorktableView: View {
   let document: PrintUnionDocument
   let importedSource: ImportedSource?
@@ -175,7 +97,7 @@ private struct WorktableView: View {
   let onImport: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: 18) {
       HStack {
         VStack(alignment: .leading, spacing: 4) {
           Text("Style Map Worktable")
@@ -199,13 +121,18 @@ private struct WorktableView: View {
           .foregroundStyle(.orange)
       }
 
-      HStack(alignment: .top, spacing: 22) {
-        SourcePreviewPanel(importedSource: importedSource, onImport: onImport)
-          .frame(minWidth: 260, idealWidth: 340, maxWidth: 380)
+      HStack(alignment: .top, spacing: 24) {
+        VStack(alignment: .leading, spacing: 18) {
+          SourcePreviewPanel(importedSource: importedSource, onImport: onImport)
+
+          ElementListPanel(document: document, selectedElementID: $selectedElementID)
+        }
+        .frame(width: 330)
 
         PrintCanvasView(document: document, selectedElementID: $selectedElementID)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .frame(minWidth: 420, maxWidth: .infinity, minHeight: 620, maxHeight: .infinity)
       }
+      .frame(maxHeight: .infinity, alignment: .top)
     }
   }
 }
@@ -236,7 +163,7 @@ private struct SourcePreviewPanel: View {
           emptyPreview
         }
       }
-      .aspectRatio(0.77, contentMode: .fit)
+      .frame(height: 430)
 
       if let importedSource {
         VStack(alignment: .leading, spacing: 4) {
@@ -295,6 +222,60 @@ private struct SourcePreviewPanel: View {
   }
 }
 
+private struct ElementListPanel: View {
+  let document: PrintUnionDocument
+  @Binding var selectedElementID: PrintElement.ID?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Label("Elements", systemImage: "rectangle.3.group")
+        .font(.headline)
+
+      VStack(spacing: 6) {
+        ForEach(document.elements) { element in
+          Button {
+            selectedElementID = element.id
+          } label: {
+            HStack {
+              Label(element.label, systemImage: iconName(for: element.type))
+                .lineLimit(1)
+              Spacer()
+              Text(element.type.rawValue)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .background(
+              RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .fill(selectedElementID == element.id ? Color.accentColor.opacity(0.14) : Color(nsColor: .textBackgroundColor))
+            )
+            .overlay(
+              RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(selectedElementID == element.id ? Color.accentColor.opacity(0.55) : Color.black.opacity(0.08), lineWidth: 1)
+            )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+
+  private func iconName(for type: PrintElementType) -> String {
+    switch type {
+    case .background, .texture: "square.fill"
+    case .border, .divider, .guide: "line.3.horizontal"
+    case .text: "textformat"
+    case .chip: "tag"
+    case .imagePlaceholder, .referenceImage: "photo"
+    case .qrPlaceholder: "qrcode"
+    case .logoMark, .handwrittenMark: "signature"
+    case .group: "rectangle.3.group"
+    }
+  }
+}
+
 private struct PrintCanvasView: View {
   let document: PrintUnionDocument
   @Binding var selectedElementID: PrintElement.ID?
@@ -309,26 +290,28 @@ private struct PrintCanvasView: View {
           .foregroundStyle(.secondary)
       }
 
-      GeometryReader { proxy in
-        let page = fittedPageSize(in: proxy.size)
+      ZStack {
+        Color(nsColor: .textBackgroundColor)
 
-        ZStack {
-          Color(nsColor: .textBackgroundColor)
-
+        GeometryReader { proxy in
+          let page = fittedPageSize(in: proxy.size)
           ZStack {
-            pageBackground
-            safeAreaOverlay
-            renderedElements
+            ZStack {
+              pageBackground
+              safeAreaOverlay
+              renderedElements
+            }
+            .frame(width: page.width, height: page.height)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+              RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(.black.opacity(0.55), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 12)
           }
-          .frame(width: page.width, height: page.height)
-          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-          .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-              .stroke(.black.opacity(0.55), lineWidth: 1)
-          )
-          .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 12)
         }
       }
+      .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
   }
 
@@ -452,7 +435,6 @@ private struct InspectorView: View {
       }
     }
     .formStyle(.grouped)
-    .padding()
   }
 }
 
