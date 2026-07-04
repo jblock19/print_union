@@ -1366,38 +1366,23 @@ private struct InspectorView: View {
 
   var body: some View {
     Form {
-      Section("Print") {
-        LabeledContent("Format", value: document.canvas.formatId)
-        LabeledContent("Bleed", value: "\(document.printSettings.bleed.value) \(document.printSettings.bleed.unit.rawValue)")
-        LabeledContent("Safe margin", value: "\(document.printSettings.safeMargin.value) \(document.printSettings.safeMargin.unit.rawValue)")
-        LabeledContent("Crop marks", value: document.printSettings.cropMarks ? "On" : "Off")
+      Section("Inspector") {
+        if selectedElement == nil {
+          Text(document.elements.isEmpty ? "Import a flyer to start building an editable version." : "Select a content slot or design part to inspect it here.")
+            .foregroundStyle(.secondary)
+        } else {
+          Text("Use this panel for the selected slot. The main writing flow stays in Content Slots on the left and directly on the flyer.")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+        }
       }
 
-      Section("Style") {
-        LabeledContent("Family", value: document.styleFingerprint.family)
-        LabeledContent("Traits", value: document.styleFingerprint.traits.joined(separator: ", "))
-      }
-
-      Section("Selected") {
+      Section("Selected Slot") {
         if let selectedElement, let selectedElementID {
-          EditableTextField(text: labelBinding(for: selectedElementID), placeholder: "Name")
+          LabeledContent("Kind", value: selectedElement.role?.displayName ?? selectedElement.type.displayName)
+
+          EditableTextField(text: labelBinding(for: selectedElementID), placeholder: "Slot name")
             .frame(height: 26)
-
-          Picker("Type", selection: typeBinding(for: selectedElementID)) {
-            ForEach(PrintElementType.allCases) { type in
-              Text(type.displayName).tag(type)
-            }
-          }
-
-          Picker("Role", selection: roleBinding(for: selectedElementID)) {
-            Text("None").tag("")
-            ForEach(ContentRole.allCases) { role in
-              Text(role.displayName).tag(role.rawValue)
-            }
-          }
-
-          Toggle("Editable", isOn: editableBinding(for: selectedElementID))
-          Toggle("Reference only", isOn: referenceOnlyBinding(for: selectedElementID))
 
           if selectedElement.type == .text || selectedElement.type == .chip || selectedElement.text != nil {
             EditableTextView(text: textBinding(for: selectedElementID), font: .systemFont(ofSize: 13))
@@ -1408,32 +1393,68 @@ private struct InspectorView: View {
             .foregroundStyle(.secondary)
             .textSelection(.enabled)
         } else {
-          Text("Select an element on the page or in the sidebar.")
+          Text("Nothing selected.")
             .foregroundStyle(.secondary)
         }
       }
 
       if let selectedElementID, selectedElement != nil {
-        Section("Bounds") {
-          frameSlider("X", value: frameBinding(for: selectedElementID, keyPath: \.x))
-          frameSlider("Y", value: frameBinding(for: selectedElementID, keyPath: \.y))
-          frameSlider("Width", value: frameBinding(for: selectedElementID, keyPath: \.width))
-          frameSlider("Height", value: frameBinding(for: selectedElementID, keyPath: \.height))
-        }
-
-        Section("Proposal") {
+        Section("Actions") {
           Button {
             document.confirmElement(withID: selectedElementID)
           } label: {
-            Label("Confirm Element", systemImage: "checkmark.circle")
+            Label("Keep This Slot", systemImage: "checkmark.circle")
           }
 
           Button(role: .destructive) {
             document.removeElement(withID: selectedElementID)
             self.selectedElementID = document.elements.first?.id ?? document.setup.proposedElements.first?.id
           } label: {
-            Label("Remove Element", systemImage: "trash")
+            Label("Ignore This Slot", systemImage: "trash")
           }
+        }
+
+        Section("Advanced Element") {
+          DisclosureGroup("Type and role") {
+            Picker("Type", selection: typeBinding(for: selectedElementID)) {
+              ForEach(PrintElementType.allCases) { type in
+                Text(type.displayName).tag(type)
+              }
+            }
+
+            Picker("Role", selection: roleBinding(for: selectedElementID)) {
+              Text("None").tag("")
+              ForEach(ContentRole.allCases) { role in
+                Text(role.displayName).tag(role.rawValue)
+              }
+            }
+
+            Toggle("Editable", isOn: editableBinding(for: selectedElementID))
+            Toggle("Reference only", isOn: referenceOnlyBinding(for: selectedElementID))
+          }
+
+          DisclosureGroup("Position and size") {
+            frameSlider("X", value: frameBinding(for: selectedElementID, keyPath: \.x))
+            frameSlider("Y", value: frameBinding(for: selectedElementID, keyPath: \.y))
+            frameSlider("Width", value: frameBinding(for: selectedElementID, keyPath: \.width))
+            frameSlider("Height", value: frameBinding(for: selectedElementID, keyPath: \.height))
+          }
+        }
+      }
+
+      Section("Print Setup") {
+        DisclosureGroup("Page settings") {
+          LabeledContent("Format", value: document.canvas.formatId)
+          LabeledContent("Bleed", value: "\(document.printSettings.bleed.value) \(document.printSettings.bleed.unit.rawValue)")
+          LabeledContent("Safe margin", value: "\(document.printSettings.safeMargin.value) \(document.printSettings.safeMargin.unit.rawValue)")
+          LabeledContent("Crop marks", value: document.printSettings.cropMarks ? "On" : "Off")
+        }
+      }
+
+      Section("Style Map") {
+        DisclosureGroup("Source analysis") {
+          LabeledContent("Family", value: document.styleFingerprint.family)
+          LabeledContent("Traits", value: document.styleFingerprint.traits.joined(separator: ", "))
         }
       }
     }
