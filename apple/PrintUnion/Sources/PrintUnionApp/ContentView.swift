@@ -22,7 +22,7 @@ struct ContentView: View {
   var body: some View {
     HStack(spacing: 0) {
       WorktableView(
-        document: document,
+        document: $document,
         importedSource: importedSource,
         importError: importError,
         selectedElementID: $selectedElementID,
@@ -257,9 +257,37 @@ private extension PrintUnionDocument {
     setup.ambiguities.removeAll { $0.regionId == id }
   }
 
+  mutating func updateTextElements(for role: ContentRole, text: String) {
+    for index in elements.indices where elements[index].role == role {
+      elements[index].text = text
+    }
+
+    for index in setup.proposedElements.indices where setup.proposedElements[index].role == role {
+      setup.proposedElements[index].text = text
+    }
+  }
+
+  func firstElementID(for role: ContentRole) -> PrintElement.ID? {
+    elements.first { $0.role == role }?.id
+      ?? setup.proposedElements.first { $0.role == role }?.id
+  }
+
   func applyingInitialStyleMapProposal(for source: ImportedSource) -> PrintUnionDocument {
     var next = self
     next.intent = .eventAnnouncement
+    next.content = InvitationContent(
+      category: "public-invitation",
+      hostPrefix: "Presented by",
+      host: "Your group",
+      hostContext: "",
+      title: "YOUR EVENT TITLE",
+      whenWhere: "Date / time / venue",
+      mainInvitation: "ALL WELCOME",
+      details: "Describe the gathering, who it is for, and what people should bring or expect.",
+      accessibilityNote: "",
+      callToAction: "RSVP",
+      contact: "your-site.org/events"
+    )
     next.canvas = inferredCanvas(for: source)
     next.styleFingerprint = StyleFingerprint(
       family: "source-derived",
@@ -288,7 +316,7 @@ private extension PrintUnionDocument {
       ]
     )
 
-    let proposedElements = initialProposalElements(for: source)
+    let proposedElements = initialProposalElements(for: source, content: next.content)
     next.setup = StyleMapSetup(
       proposedElements: proposedElements,
       ambiguities: [
@@ -327,7 +355,7 @@ private extension PrintUnionDocument {
     return PrintUnionDefaults.defaultCanvas
   }
 
-  private func initialProposalElements(for source: ImportedSource) -> [PrintElement] {
+  private func initialProposalElements(for source: ImportedSource, content: InvitationContent) -> [PrintElement] {
     [
       PrintElement(
         id: "source-reference",
@@ -373,15 +401,16 @@ private extension PrintUnionDocument {
         label: "Primary headline region",
         role: .title,
         frame: ElementFrame(x: 0.12, y: 0.17, width: 0.74, height: 0.2),
-        text: "EVENT TITLE",
+        text: content.title,
         style: ["fontRole": "display", "case": "uppercase", "weight": "heavy"]
       ),
       PrintElement(
         id: "metadata-rows",
-        type: .group,
+        type: .text,
         label: "Host, date, time, and venue rows",
         role: .whenWhere,
         frame: ElementFrame(x: 0.1, y: 0.38, width: 0.8, height: 0.14),
+        text: "\(content.host) / \(content.whenWhere)",
         style: ["typography": "small mono or ledger text", "layout": "ruled rows"]
       ),
       PrintElement(
@@ -390,7 +419,7 @@ private extension PrintUnionDocument {
         label: "Invitation chip / emphasis label",
         role: .mainInvitation,
         frame: ElementFrame(x: 0.12, y: 0.55, width: 0.34, height: 0.045),
-        text: "TAG",
+        text: content.mainInvitation,
         style: ["treatment": "black ink reversal", "editableText": "true"]
       ),
       PrintElement(
@@ -399,15 +428,16 @@ private extension PrintUnionDocument {
         label: "Body copy block",
         role: .details,
         frame: ElementFrame(x: 0.12, y: 0.62, width: 0.63, height: 0.2),
-        text: "DETAILS",
+        text: content.details,
         style: ["fontRole": "body", "measure": "narrow", "texture": "typewriter-like"]
       ),
       PrintElement(
         id: "footer-action-region",
-        type: .group,
+        type: .text,
         label: "Footer action, QR, and mark",
         role: .callToAction,
         frame: ElementFrame(x: 0.09, y: 0.84, width: 0.8, height: 0.1),
+        text: "\(content.callToAction) @ \(content.contact)",
         style: ["contains": "call to action, QR placeholder, logo or signature mark"]
       )
     ]
@@ -431,7 +461,7 @@ private extension NSImage {
 }
 
 private struct WorktableView: View {
-  let document: PrintUnionDocument
+  @Binding var document: PrintUnionDocument
   let importedSource: ImportedSource?
   let importError: String?
   @Binding var selectedElementID: PrintElement.ID?
@@ -467,6 +497,8 @@ private struct WorktableView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
             SourcePreviewPanel(importedSource: importedSource, onImport: onImport, onDropSources: onDropSources)
+
+            RepurposeContentPanel(document: $document, selectedElementID: $selectedElementID)
 
             ElementListPanel(document: document, selectedElementID: $selectedElementID)
           }
@@ -590,6 +622,184 @@ private struct SourcePreviewPanel: View {
   }
 }
 
+private struct RepurposeContentPanel: View {
+  @Binding var document: PrintUnionDocument
+  @Binding var selectedElementID: PrintElement.ID?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Label("Repurpose This Flyer", systemImage: "square.and.pencil")
+        .font(.headline)
+
+      VStack(alignment: .leading, spacing: 8) {
+        StepPill(number: "1", title: "Keep the design", detail: "Paper, grid, dividers, spacing, and print feel.")
+        StepPill(number: "2", title: "Replace the message", detail: "Write your event into the detected content slots.")
+        StepPill(number: "3", title: "Print it", detail: "Export once the layout feels like yours.")
+      }
+
+      VStack(alignment: .leading, spacing: 10) {
+        Text("Content Slots")
+          .font(.subheadline.weight(.semibold))
+
+        slotField("Title", role: .title, text: titleBinding)
+        slotField("Host", role: .whenWhere, text: hostBinding)
+        slotField("Date / Time / Venue", role: .whenWhere, text: whenWhereBinding)
+        slotField("Invitation Line", role: .mainInvitation, text: mainInvitationBinding)
+        slotField("Details", role: .details, text: detailsBinding, lineLimit: 3...5)
+        slotField("RSVP / Action", role: .callToAction, text: callToActionBinding)
+        slotField("Contact", role: .callToAction, text: contactBinding)
+      }
+
+      Button {
+        confirmContentSlots()
+      } label: {
+        Label("Use These Content Slots", systemImage: "checkmark.circle")
+          .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(.borderedProminent)
+    }
+    .padding(12)
+    .background(
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .fill(Color(nsColor: .controlBackgroundColor))
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .stroke(Color.black.opacity(0.08), lineWidth: 1)
+    )
+  }
+
+  private var titleBinding: Binding<String> {
+    contentBinding(\.title, role: .title)
+  }
+
+  private var hostBinding: Binding<String> {
+    Binding(
+      get: { document.content.host },
+      set: { value in
+        document.content.host = value
+        syncWhenWhereText()
+      }
+    )
+  }
+
+  private var whenWhereBinding: Binding<String> {
+    Binding(
+      get: { document.content.whenWhere },
+      set: { value in
+        document.content.whenWhere = value
+        syncWhenWhereText()
+      }
+    )
+  }
+
+  private var mainInvitationBinding: Binding<String> {
+    contentBinding(\.mainInvitation, role: .mainInvitation)
+  }
+
+  private var detailsBinding: Binding<String> {
+    contentBinding(\.details, role: .details)
+  }
+
+  private var callToActionBinding: Binding<String> {
+    Binding(
+      get: { document.content.callToAction },
+      set: { value in
+        document.content.callToAction = value
+        syncFooterText()
+      }
+    )
+  }
+
+  private var contactBinding: Binding<String> {
+    Binding(
+      get: { document.content.contact },
+      set: { value in
+        document.content.contact = value
+        syncFooterText()
+      }
+    )
+  }
+
+  private func slotField(
+    _ label: String,
+    role: ContentRole,
+    text: Binding<String>,
+    lineLimit: ClosedRange<Int> = 1...2
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack {
+        Text(label)
+          .font(.caption.weight(.semibold))
+        Spacer()
+        Button {
+          selectedElementID = document.firstElementID(for: role)
+        } label: {
+          Image(systemName: "scope")
+        }
+        .buttonStyle(.borderless)
+        .help("Select this slot on the page")
+      }
+
+      TextField(label, text: text, axis: .vertical)
+        .lineLimit(lineLimit)
+        .textFieldStyle(.roundedBorder)
+    }
+  }
+
+  private func contentBinding(_ keyPath: WritableKeyPath<InvitationContent, String>, role: ContentRole) -> Binding<String> {
+    Binding(
+      get: { document.content[keyPath: keyPath] },
+      set: { value in
+        document.content[keyPath: keyPath] = value
+        document.updateTextElements(for: role, text: value)
+      }
+    )
+  }
+
+  private func syncWhenWhereText() {
+    document.updateTextElements(for: .whenWhere, text: "\(document.content.host) / \(document.content.whenWhere)")
+  }
+
+  private func syncFooterText() {
+    document.updateTextElements(for: .callToAction, text: "\(document.content.callToAction) @ \(document.content.contact)")
+  }
+
+  private func confirmContentSlots() {
+    let roles: [ContentRole] = [.title, .whenWhere, .mainInvitation, .details, .callToAction]
+    roles.forEach { role in
+      if let id = document.firstElementID(for: role) {
+        document.confirmElement(withID: id)
+      }
+    }
+  }
+}
+
+private struct StepPill: View {
+  let number: String
+  let title: String
+  let detail: String
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Text(number)
+        .font(.caption.bold())
+        .frame(width: 18, height: 18)
+        .background(Circle().fill(Color.accentColor.opacity(0.16)))
+        .foregroundStyle(Color.accentColor)
+
+      VStack(alignment: .leading, spacing: 1) {
+        Text(title)
+          .font(.caption.weight(.semibold))
+        Text(detail)
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+}
+
 private struct ElementListPanel: View {
   let document: PrintUnionDocument
   @Binding var selectedElementID: PrintElement.ID?
@@ -598,39 +808,23 @@ private struct ElementListPanel: View {
     document.setup.proposedElements.isEmpty ? document.elements : document.setup.proposedElements
   }
 
+  private var designParts: [PrintElement] {
+    visibleElements.filter { element in
+      element.role == nil || [.background, .texture, .border, .divider, .guide, .referenceImage, .group].contains(element.type)
+    }
+  }
+
+  private var contentSlots: [PrintElement] {
+    visibleElements.filter { $0.role != nil && !designParts.contains($0) }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Label("Elements", systemImage: "rectangle.3.group")
+      Label("Style Map", systemImage: "rectangle.3.group")
         .font(.headline)
 
-      VStack(spacing: 6) {
-        ForEach(visibleElements) { element in
-          Button {
-            selectedElementID = element.id
-          } label: {
-            HStack {
-              Label(element.label, systemImage: iconName(for: element.type))
-                .lineLimit(1)
-              Spacer()
-              Text(element.type.rawValue)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
-            .background(
-              RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(selectedElementID == element.id ? Color.accentColor.opacity(0.14) : Color(nsColor: .textBackgroundColor))
-            )
-            .overlay(
-              RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .stroke(selectedElementID == element.id ? Color.accentColor.opacity(0.55) : Color.black.opacity(0.08), lineWidth: 1)
-            )
-          }
-          .buttonStyle(.plain)
-        }
-      }
+      elementSection("Design Parts", elements: designParts)
+      elementSection("Content Slots", elements: contentSlots)
 
       if !document.setup.ambiguities.isEmpty {
         VStack(alignment: .leading, spacing: 8) {
@@ -657,6 +851,45 @@ private struct ElementListPanel: View {
         }
       }
     }
+  }
+
+  private func elementSection(_ title: String, elements: [PrintElement]) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.secondary)
+
+      ForEach(elements) { element in
+        elementRow(element)
+      }
+    }
+  }
+
+  private func elementRow(_ element: PrintElement) -> some View {
+    Button {
+      selectedElementID = element.id
+    } label: {
+      HStack {
+        Label(element.label, systemImage: iconName(for: element.type))
+          .lineLimit(1)
+        Spacer()
+        Text(element.role?.displayName ?? element.type.displayName)
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+      }
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .frame(maxWidth: .infinity)
+      .background(
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+          .fill(selectedElementID == element.id ? Color.accentColor.opacity(0.14) : Color(nsColor: .textBackgroundColor))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+          .stroke(selectedElementID == element.id ? Color.accentColor.opacity(0.55) : Color.black.opacity(0.08), lineWidth: 1)
+      )
+    }
+    .buttonStyle(.plain)
   }
 
   private func iconName(for type: PrintElementType) -> String {
@@ -770,11 +1003,7 @@ private struct PrintCanvasView: View {
         .padding(.horizontal, 8)
         .background(.black)
     case .text:
-      Text(element.text ?? element.label)
-        .font(.system(size: 34, weight: .black, design: .default))
-        .textCase(.uppercase)
-        .minimumScaleFactor(0.35)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+      textElementView(element)
     default:
       RoundedRectangle(cornerRadius: 3)
         .stroke(.black.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
@@ -786,6 +1015,41 @@ private struct PrintCanvasView: View {
           }
         }
     }
+  }
+
+  private func textElementView(_ element: PrintElement) -> some View {
+    let text = element.text ?? element.label
+
+    return Group {
+      switch element.role {
+      case .title:
+        Text(text)
+          .font(.system(size: 34, weight: .black, design: .default))
+          .textCase(.uppercase)
+          .minimumScaleFactor(0.35)
+      case .whenWhere:
+        Text(text)
+          .font(.system(.caption, design: .monospaced).weight(.semibold))
+          .lineLimit(3)
+          .minimumScaleFactor(0.5)
+      case .details:
+        Text(text)
+          .font(.system(size: 13, weight: .medium, design: .monospaced))
+          .lineSpacing(3)
+          .lineLimit(8)
+          .minimumScaleFactor(0.55)
+      case .callToAction:
+        Text(text)
+          .font(.system(.callout, design: .monospaced).weight(.bold))
+          .lineLimit(2)
+          .minimumScaleFactor(0.5)
+      default:
+        Text(text)
+          .font(.system(.body, design: .monospaced).weight(.semibold))
+          .minimumScaleFactor(0.5)
+      }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
   }
 
   @ViewBuilder
