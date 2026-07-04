@@ -47,7 +47,18 @@ Swift app
 ## Next Native Milestones
 
 1. Make `PrintUnionCore` the source of truth for the current web schema too.
-2. Build real file import and source preview.
+2. Expand source import with drag/drop and PDF page thumbnail rendering.
 3. Build the Style Map setup page natively.
 4. Add basic PDF/PNG export with safe margins and crop marks.
 5. Add Apple Vision/Core Image measurement passes.
+
+## Current Native Shell
+
+The first native shell now supports:
+
+- source import through the macOS file picker
+- image source previews
+- PDF source acknowledgement
+- a worktable layout with source reference beside editable template preview
+- sidebar content roles and element list
+- inspector for print/style/selected-element metadata

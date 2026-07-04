@@ -45,3 +45,5 @@ cd apple/PrintUnion
 swift test
 swift run PrintUnionApp
 ```
+
+In Xcode, open `apple/PrintUnion/Package.swift`, choose the `PrintUnionApp` scheme and **My Mac**, then run. For the SwiftUI canvas, open `Sources/PrintUnionApp/ContentView.swift` and show the canvas with `Option+Cmd+Return`.

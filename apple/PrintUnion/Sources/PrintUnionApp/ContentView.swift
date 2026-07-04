@@ -1,9 +1,17 @@
 import PrintUnionCore
 import SwiftUI
+import UniformTypeIdentifiers
+
+#if os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
   @State private var document = PrintUnionDefaults.sampleDocument
   @State private var selectedElementID: PrintElement.ID?
+  @State private var importedSource: ImportedSource?
+  @State private var isImporterPresented = false
+  @State private var importError: String?
 
   var selectedElement: PrintElement? {
     document.elements.first { $0.id == selectedElementID }
@@ -11,24 +19,106 @@ struct ContentView: View {
 
   var body: some View {
     NavigationSplitView {
-      SidebarView(document: document, selectedElementID: $selectedElementID)
+      SidebarView(
+        document: document,
+        importedSource: importedSource,
+        selectedElementID: $selectedElementID,
+        onImport: { isImporterPresented = true }
+      )
     } content: {
-      PrintCanvasView(document: document, selectedElementID: $selectedElementID)
+      WorktableView(
+        document: document,
+        importedSource: importedSource,
+        importError: importError,
+        selectedElementID: $selectedElementID,
+        onImport: { isImporterPresented = true }
+      )
         .padding(28)
         .background(Color(nsColor: .windowBackgroundColor))
     } detail: {
       InspectorView(document: document, selectedElement: selectedElement)
     }
     .navigationTitle("Print Union")
+    .fileImporter(
+      isPresented: $isImporterPresented,
+      allowedContentTypes: [.image, .pdf],
+      allowsMultipleSelection: false,
+      onCompletion: handleImport
+    )
+  }
+
+  private func handleImport(_ result: Result<[URL], Error>) {
+    importError = nil
+
+    do {
+      guard let url = try result.get().first else { return }
+      importedSource = try ImportedSource.load(from: url)
+    } catch {
+      importError = error.localizedDescription
+    }
+  }
+}
+
+struct ImportedSource: Equatable, Sendable {
+  var fileName: String
+  var typeLabel: String
+  var byteCount: Int
+  var imageData: Data?
+
+  static func load(from url: URL) throws -> ImportedSource {
+    let didStartAccessing = url.startAccessingSecurityScopedResource()
+    defer {
+      if didStartAccessing {
+        url.stopAccessingSecurityScopedResource()
+      }
+    }
+
+    let data = try Data(contentsOf: url)
+    let type = UTType(filenameExtension: url.pathExtension)
+    let isImage = type?.conforms(to: .image) == true
+    let isPDF = type?.conforms(to: .pdf) == true
+
+    return ImportedSource(
+      fileName: url.lastPathComponent,
+      typeLabel: isPDF ? "PDF source" : isImage ? "Image source" : "Source file",
+      byteCount: data.count,
+      imageData: isImage ? data : nil
+    )
+  }
+
+  var byteCountLabel: String {
+    ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
   }
 }
 
 private struct SidebarView: View {
   let document: PrintUnionDocument
+  let importedSource: ImportedSource?
   @Binding var selectedElementID: PrintElement.ID?
+  let onImport: () -> Void
 
   var body: some View {
     List(selection: $selectedElementID) {
+      Section("Source") {
+        Button {
+          onImport()
+        } label: {
+          Label(importedSource == nil ? "Import Flyer" : "Replace Source", systemImage: "square.and.arrow.down")
+        }
+
+        if let importedSource {
+          VStack(alignment: .leading, spacing: 3) {
+            Text(importedSource.fileName)
+              .font(.callout.weight(.semibold))
+              .lineLimit(2)
+            Text("\(importedSource.typeLabel) / \(importedSource.byteCountLabel)")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+          .padding(.vertical, 2)
+        }
+      }
+
       Section("Intent") {
         LabeledContent("Kind", value: document.intent.label)
         LabeledContent("Size", value: "\(document.canvas.formatId.uppercased()) / \(document.canvas.orientation.rawValue)")
@@ -77,6 +167,134 @@ private struct SidebarView: View {
   }
 }
 
+private struct WorktableView: View {
+  let document: PrintUnionDocument
+  let importedSource: ImportedSource?
+  let importError: String?
+  @Binding var selectedElementID: PrintElement.ID?
+  let onImport: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      HStack {
+        VStack(alignment: .leading, spacing: 4) {
+          Text("Style Map Worktable")
+            .font(.title2.bold())
+          Text("Bring in a printed source, then rebuild it as editable public-invitation elements.")
+            .foregroundStyle(.secondary)
+        }
+
+        Spacer()
+
+        Button {
+          onImport()
+        } label: {
+          Label(importedSource == nil ? "Import Source" : "Replace Source", systemImage: "doc.badge.plus")
+        }
+        .buttonStyle(.borderedProminent)
+      }
+
+      if let importError {
+        Label(importError, systemImage: "exclamationmark.triangle")
+          .foregroundStyle(.orange)
+      }
+
+      HStack(alignment: .top, spacing: 22) {
+        SourcePreviewPanel(importedSource: importedSource, onImport: onImport)
+          .frame(minWidth: 260, idealWidth: 340, maxWidth: 380)
+
+        PrintCanvasView(document: document, selectedElementID: $selectedElementID)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }
+  }
+}
+
+private struct SourcePreviewPanel: View {
+  let importedSource: ImportedSource?
+  let onImport: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Label("Source", systemImage: "viewfinder")
+          .font(.headline)
+        Spacer()
+      }
+
+      ZStack {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+          .fill(Color(nsColor: .textBackgroundColor))
+          .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+              .stroke(.black.opacity(0.18), lineWidth: 1)
+          )
+
+        if let importedSource {
+          importedPreview(importedSource)
+        } else {
+          emptyPreview
+        }
+      }
+      .aspectRatio(0.77, contentMode: .fit)
+
+      if let importedSource {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(importedSource.fileName)
+            .font(.callout.weight(.semibold))
+            .lineLimit(2)
+          Text("\(importedSource.typeLabel) / \(importedSource.byteCountLabel)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func importedPreview(_ source: ImportedSource) -> some View {
+    if let imageData = source.imageData, let image = platformImage(from: imageData) {
+      Image(nsImage: image)
+        .resizable()
+        .scaledToFit()
+        .padding(12)
+    } else {
+      VStack(spacing: 12) {
+        Image(systemName: "doc.richtext")
+          .font(.system(size: 42))
+          .foregroundStyle(.secondary)
+        Text("PDF source imported")
+          .font(.headline)
+        Text("PDF page preview comes next; the source file is ready for the Style Map flow.")
+          .font(.caption)
+          .multilineTextAlignment(.center)
+          .foregroundStyle(.secondary)
+          .padding(.horizontal)
+      }
+    }
+  }
+
+  private var emptyPreview: some View {
+    VStack(spacing: 12) {
+      Image(systemName: "plus.viewfinder")
+        .font(.system(size: 42))
+        .foregroundStyle(.secondary)
+      Text("Import a flyer, poster, or notice")
+        .font(.headline)
+      Text("PNG, JPEG, WebP, and PDF sources will become the reference for the Style Map.")
+        .font(.caption)
+        .multilineTextAlignment(.center)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal)
+      Button("Choose File", action: onImport)
+    }
+  }
+
+  private func platformImage(from data: Data) -> NSImage? {
+    NSImage(data: data)
+  }
+}
+
 private struct PrintCanvasView: View {
   let document: PrintUnionDocument
   @Binding var selectedElementID: PrintElement.ID?
@@ -84,7 +302,7 @@ private struct PrintCanvasView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text("Style Map")
+        Text("Editable Template")
           .font(.title2.bold())
         Spacer()
         Label("Print-ready preview", systemImage: "printer")
@@ -236,4 +454,9 @@ private struct InspectorView: View {
     .formStyle(.grouped)
     .padding()
   }
+}
+
+#Preview("Print Union App") {
+  ContentView()
+    .frame(width: 1180, height: 760)
 }
