@@ -26,7 +26,8 @@ struct ContentView: View {
         importedSource: importedSource,
         importError: importError,
         selectedElementID: $selectedElementID,
-        onImport: { isImporterPresented = true }
+        onImport: { isImporterPresented = true },
+        onDropSources: handleDrop
       )
       .frame(minWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
       .padding(24)
@@ -52,14 +53,121 @@ struct ContentView: View {
 
     do {
       guard let url = try result.get().first else { return }
-      let source = try ImportedSource.load(from: url)
-      importedSource = source
-      document = document.applyingInitialStyleMapProposal(for: source)
-      selectedElementID = document.elements.first(where: { $0.type == .text })?.id ?? document.elements.first?.id
+      try importSource(from: url)
     } catch {
       importError = error.localizedDescription
     }
   }
+
+  private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+    importError = nil
+
+    if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) }) {
+      provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
+        let droppedURL = droppedURL(from: item)
+
+        DispatchQueue.main.async {
+          if let error {
+            importError = error.localizedDescription
+            return
+          }
+
+          guard let url = droppedURL else {
+            importError = "Could not read the dropped file."
+            return
+          }
+
+          do {
+            try importSource(from: url)
+          } catch {
+            importError = error.localizedDescription
+          }
+        }
+      }
+      return true
+    }
+
+    if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }) {
+      let fileName = suggestedFileName(from: provider, fallback: "Dropped screenshot", fileExtension: "png")
+
+      provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, error in
+        DispatchQueue.main.async {
+          if let error {
+            importError = error.localizedDescription
+            return
+          }
+
+          guard let data else {
+            importError = "Could not read the dropped image."
+            return
+          }
+
+          processImportedSource(ImportedSource.load(data: data, fileName: fileName, type: .image))
+        }
+      }
+      return true
+    }
+
+    if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) }) {
+      let fileName = suggestedFileName(from: provider, fallback: "Dropped source", fileExtension: "pdf")
+
+      provider.loadDataRepresentation(forTypeIdentifier: UTType.pdf.identifier) { data, error in
+        DispatchQueue.main.async {
+          if let error {
+            importError = error.localizedDescription
+            return
+          }
+
+          guard let data else {
+            importError = "Could not read the dropped PDF."
+            return
+          }
+
+          processImportedSource(ImportedSource.load(data: data, fileName: fileName, type: .pdf))
+        }
+      }
+      return true
+    }
+
+    importError = "Drop an image, screenshot, or PDF source."
+    return false
+  }
+
+  private func importSource(from url: URL) throws {
+    let source = try ImportedSource.load(from: url)
+    processImportedSource(source)
+  }
+
+  private func processImportedSource(_ source: ImportedSource) {
+    importedSource = source
+    document = document.applyingInitialStyleMapProposal(for: source)
+    selectedElementID = document.elements.first(where: { $0.type == .text })?.id ?? document.elements.first?.id
+  }
+}
+
+private func droppedURL(from droppedItem: NSSecureCoding?) -> URL? {
+  if let url = droppedItem as? URL {
+    return url
+  }
+
+  if let data = droppedItem as? Data {
+    return URL(dataRepresentation: data, relativeTo: nil)
+  }
+
+  if let string = droppedItem as? String {
+    return URL(string: string)
+  }
+
+  return nil
+}
+
+private func suggestedFileName(from provider: NSItemProvider, fallback: String, fileExtension: String) -> String {
+  let name = provider.suggestedName ?? fallback
+  if URL(fileURLWithPath: name).pathExtension.isEmpty {
+    return "\(name).\(fileExtension)"
+  }
+
+  return name
 }
 
 struct ImportedSource: Equatable, Sendable {
@@ -80,13 +188,18 @@ struct ImportedSource: Equatable, Sendable {
 
     let data = try Data(contentsOf: url)
     let type = UTType(filenameExtension: url.pathExtension)
+
+    return load(data: data, fileName: url.lastPathComponent, type: type)
+  }
+
+  static func load(data: Data, fileName: String, type: UTType?) -> ImportedSource {
     let isImage = type?.conforms(to: .image) == true
     let isPDF = type?.conforms(to: .pdf) == true
     let image = isImage ? NSImage(data: data) : nil
     let pixelSize = image?.bestPixelSize
 
     return ImportedSource(
-      fileName: url.lastPathComponent,
+      fileName: fileName,
       typeLabel: isPDF ? "PDF source" : isImage ? "Image source" : "Source file",
       byteCount: data.count,
       imageData: isImage ? data : nil,
@@ -288,6 +401,7 @@ private struct WorktableView: View {
   let importError: String?
   @Binding var selectedElementID: PrintElement.ID?
   let onImport: () -> Void
+  let onDropSources: ([NSItemProvider]) -> Bool
 
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
@@ -315,12 +429,16 @@ private struct WorktableView: View {
       }
 
       HStack(alignment: .top, spacing: 24) {
-        VStack(alignment: .leading, spacing: 18) {
-          SourcePreviewPanel(importedSource: importedSource, onImport: onImport)
+        ScrollView {
+          VStack(alignment: .leading, spacing: 18) {
+            SourcePreviewPanel(importedSource: importedSource, onImport: onImport, onDropSources: onDropSources)
 
-          ElementListPanel(document: document, selectedElementID: $selectedElementID)
+            ElementListPanel(document: document, selectedElementID: $selectedElementID)
+          }
+          .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .frame(width: 330)
+        .scrollIndicators(.visible)
 
         PrintCanvasView(document: document, selectedElementID: $selectedElementID)
           .frame(minWidth: 420, maxWidth: .infinity, minHeight: 620, maxHeight: .infinity)
@@ -333,6 +451,8 @@ private struct WorktableView: View {
 private struct SourcePreviewPanel: View {
   let importedSource: ImportedSource?
   let onImport: () -> Void
+  let onDropSources: ([NSItemProvider]) -> Bool
+  @State private var isDropTargeted = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -355,8 +475,28 @@ private struct SourcePreviewPanel: View {
         } else {
           emptyPreview
         }
+
+        if isDropTargeted {
+          RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color.accentColor.opacity(0.12))
+            .overlay(
+              RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
+            )
+            .overlay(
+              Label("Drop source", systemImage: "arrow.down.doc")
+                .font(.headline)
+                .padding(10)
+                .background(.regularMaterial, in: Capsule())
+            )
+        }
       }
       .frame(height: 430)
+      .onDrop(
+        of: [UTType.fileURL.identifier, UTType.image.identifier, UTType.pdf.identifier],
+        isTargeted: $isDropTargeted,
+        perform: onDropSources
+      )
 
       if let importedSource {
         VStack(alignment: .leading, spacing: 4) {
@@ -517,20 +657,25 @@ private struct PrintCanvasView: View {
 
         GeometryReader { proxy in
           let page = fittedPageSize(in: proxy.size)
-          ZStack {
+          ScrollView([.horizontal, .vertical]) {
             ZStack {
-              pageBackground
-              safeAreaOverlay
-              renderedElements
+              ZStack {
+                pageBackground
+                safeAreaOverlay
+                renderedElements
+              }
+              .frame(width: page.width, height: page.height)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                  .stroke(.black.opacity(0.55), lineWidth: 1)
+              )
+              .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 12)
             }
-            .frame(width: page.width, height: page.height)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(
-              RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.black.opacity(0.55), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 12)
+            .frame(minWidth: proxy.size.width, minHeight: proxy.size.height)
+            .padding(20)
           }
+          .scrollIndicators(.visible)
         }
       }
       .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
