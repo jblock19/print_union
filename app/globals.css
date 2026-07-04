@@ -1,0 +1,3612 @@
+:root {
+  --ink: #13110e;
+  --paper: #efeee8;
+  --paper-soft: #fbfaf5;
+  --cream: #ece9df;
+  --panel: #f4f2ec;
+  --shadow: 0 26px 60px rgba(17, 13, 8, 0.24);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    linear-gradient(rgba(239, 238, 232, 0.88), rgba(239, 238, 232, 0.88)),
+    linear-gradient(135deg, #dcd9d0, #f7f6f1);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.stage {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 760px);
+  gap: 28px;
+  align-items: stretch;
+  justify-content: center;
+  padding: 12px 18px 36px;
+}
+
+.editor-panel {
+  position: sticky;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 48px);
+  height: calc(100vh - 48px);
+  max-height: calc(100vh - 20px);
+  overflow: auto;
+  padding: 20px;
+  border: 4px solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.editor-heading p {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.editor-heading h2 {
+  margin: 0 0 16px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.editor-helper {
+  display: block;
+  margin: -6px 0 16px;
+  color: #5e5a53;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.preview-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 0 0 10px;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+}
+
+.preview-mode-toggle button {
+  border: 0;
+  background: var(--paper-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 10px 8px;
+  text-transform: uppercase;
+}
+
+.preview-mode-toggle button + button {
+  border-left: 3px solid var(--ink);
+}
+
+.preview-mode-toggle button.is-active {
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.flyer-mode-toggle {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+}
+
+.flyer-mode-toggle button {
+  border: 3px solid var(--ink);
+  background: var(--paper-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 10px 8px;
+  text-transform: uppercase;
+}
+
+.flyer-mode-toggle button.is-active {
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.vibe-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.vibe-card {
+  position: relative;
+}
+
+.vibe-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  width: 100%;
+  border: 2px solid rgba(19, 17, 14, 0.68);
+  background: #fbfaf5;
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 50px;
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.vibe-button.is-selected {
+  border-width: 3px;
+  padding: 6px 9px;
+  box-shadow: 3px 3px 0 rgba(19, 17, 14, 0.12);
+}
+
+.vibe-button span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vibe-button small {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  color: #5e5a53;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.76rem;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vibe-button i {
+  display: flex;
+  grid-row: 1;
+  grid-column: 2;
+  align-items: center;
+  gap: 3px;
+  padding-top: 0;
+}
+
+.vibe-button b {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ink);
+  background: var(--dot);
+}
+
+.vibe-info-button {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(19, 17, 14, 0.72);
+  border-radius: 999px;
+  background: rgba(251, 250, 245, 0.96);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.76rem;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.vibe-info-button:hover,
+.vibe-info-button[aria-expanded="true"] {
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.vibe-info-popover {
+  position: relative;
+  z-index: 3;
+  margin: -1px 0 6px;
+  padding: 10px;
+  border: 2px solid var(--ink);
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(19, 17, 14, 0.15);
+}
+
+.vibe-info-popover strong {
+  display: block;
+  margin: 0 0 5px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.vibe-info-popover p {
+  margin: 0;
+  color: #4f4b44;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  line-height: 1.28;
+}
+
+.vibe-choice-70s-community span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
+}
+
+.vibe-choice-70s-community {
+  border-radius: 10px 2px 10px 2px;
+}
+
+.vibe-choice-group-chat-flyer span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.vibe-choice-group-chat-flyer {
+  border-radius: 12px 12px 12px 3px;
+  background:
+    radial-gradient(circle at 90% 18%, rgba(216, 59, 161, 0.12) 0 18px, transparent 19px),
+    #fbfaf5;
+}
+
+.vibe-choice-xerox-punk span {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+}
+
+.vibe-choice-xerox-punk small {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.76rem;
+}
+
+.vibe-choice-riso-indie-social span {
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  color: #111;
+  text-shadow:
+    1px 0 0 rgba(255, 62, 165, 0.32),
+    -1px 1px 0 rgba(0, 191, 216, 0.28);
+}
+
+.vibe-choice-riso-indie-social {
+  background:
+    radial-gradient(circle, rgba(0, 191, 216, 0.18) 0 1px, transparent 1.4px 7px),
+    #fffaf2;
+}
+
+.vibe-choice-90s-block-party span {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.vibe-choice-90s-block-party {
+  box-shadow: inset 5px 0 0 rgba(36, 87, 166, 0.26);
+}
+
+.vibe-choice-00s-zine-web span {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-transform: lowercase;
+}
+
+.vibe-choice-00s-zine-web {
+  transform: rotate(-0.25deg);
+}
+
+.vibe-choice-civic-now span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.vibe-choice-civic-now {
+  border-radius: 8px;
+}
+
+.editor-section {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 10px;
+  border: 3px solid var(--ink);
+  background: var(--paper-soft);
+}
+
+.editor-section[open] {
+  z-index: 30;
+}
+
+.editor-section summary {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  list-style: none;
+  padding: 11px 38px 11px 12px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.editor-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-section summary::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.editor-section[open] summary {
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.editor-section[open] summary::after {
+  content: "-";
+}
+
+.editor-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -3px;
+  right: -3px;
+  z-index: 40;
+  max-height: min(540px, calc(100vh - 180px));
+  overflow: auto;
+  padding: 12px;
+  border: 3px solid var(--ink);
+  background: var(--paper-soft);
+  box-shadow: 6px 8px 0 rgba(19, 17, 14, 0.18);
+}
+
+.vibe-grid {
+  margin-top: 0;
+}
+
+.palette-editor p {
+  margin: 0 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.palette-mood-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.palette-mood-button {
+  border: 2px solid rgba(19, 17, 14, 0.68);
+  background: #fbfaf5;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 8px 6px;
+  text-transform: uppercase;
+}
+
+.palette-mood-button.is-selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.depth-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+}
+
+.depth-control button {
+  border: 0;
+  background: var(--paper-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 10px 6px;
+  text-transform: uppercase;
+}
+
+.depth-control button + button {
+  border-left: 3px solid var(--ink);
+}
+
+.depth-control button.is-active {
+  background: var(--ink);
+  color: var(--paper-soft);
+}
+
+.object-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 0;
+}
+
+.editor-panel .object-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 0;
+  padding: 7px 8px;
+  border: 2px solid rgba(19, 17, 14, 0.64);
+  background: #fbfaf5;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.editor-panel .object-toggle input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.editor-panel .object-toggle.is-required {
+  background: color-mix(in srgb, var(--paper-soft), var(--ink) 4%);
+  color: #5e5a53;
+  cursor: default;
+}
+
+.editor-panel .object-toggle.is-required input {
+  cursor: not-allowed;
+}
+
+.object-toggle span {
+  min-width: 0;
+}
+
+.palette-slots {
+  display: grid;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.palette-slot {
+  display: grid;
+  gap: 6px;
+}
+
+.palette-slot strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.palette-slot strong b {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ink);
+  background: var(--swatch);
+}
+
+.palette-slot .swatch-row {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.background-swatch-row {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.color-control-group {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.color-control-group:last-child {
+  margin-bottom: 0;
+}
+
+.color-control-group > strong {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.swatch-button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--swatch);
+  cursor: pointer;
+  padding: 0;
+}
+
+.swatch-button.is-selected::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--paper-soft);
+  background: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.editor-panel label {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.editor-panel input,
+.editor-panel select,
+.editor-panel textarea {
+  width: 100%;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-soft);
+  color: var(--ink);
+  font: 800 0.92rem Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  padding: 10px;
+  text-transform: none;
+}
+
+.editor-panel textarea {
+  resize: vertical;
+}
+
+.reset-button {
+  width: 100%;
+  margin-top: auto;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper-soft);
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 12px;
+  text-transform: uppercase;
+}
+
+.inline-reset-button {
+  margin-top: 8px;
+  border: 2px solid var(--ink);
+  background: var(--paper-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 8px;
+  text-transform: uppercase;
+}
+
+.community-flyer {
+  --accent-1: #d99a2b;
+  --accent-2: #c9482b;
+  --accent-3: #4f8f72;
+  position: relative;
+  width: min(760px, 100%);
+  padding: clamp(18px, 3vw, 28px);
+  overflow: hidden;
+  border: 12px solid var(--paper);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-2), transparent 38%) 0 6px, transparent 6px calc(100% - 6px), color-mix(in srgb, var(--accent-3), transparent 38%) calc(100% - 6px)),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-1), transparent 34%) 0 5px, transparent 5px calc(100% - 5px), color-mix(in srgb, var(--accent-3), transparent 42%) calc(100% - 5px)),
+    linear-gradient(#fbfaf5, #f6f4ef);
+  box-shadow: var(--shadow);
+  isolation: isolate;
+}
+
+.community-flyer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 13% 18%, rgba(255, 255, 255, 0.84) 0 1px, transparent 1px 12px),
+    radial-gradient(circle at 66% 11%, rgba(255, 255, 255, 0.78) 0 1px, transparent 1px 10px),
+    radial-gradient(circle at 24% 64%, rgba(19, 17, 14, 0.1) 0 1px, transparent 1px 10px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06), transparent 13% 87%, rgba(0, 0, 0, 0.07));
+  opacity: 0.28;
+}
+
+.community-flyer::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 2px solid rgba(19, 17, 14, 0.24);
+  pointer-events: none;
+}
+
+.flyer-rows {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--copy-gap, 12px);
+  padding: 12px 0 2px;
+  overflow: visible;
+}
+
+.flyer-row {
+  position: relative;
+  z-index: calc(var(--row-index) + 1);
+  grid-column: 1 / -1;
+  overflow: visible;
+  transition:
+    filter 140ms ease,
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.flyer-row > :not(.row-grip) {
+  position: relative;
+  z-index: 1;
+}
+
+.flyer-row + .flyer-row {
+  margin-top: -7px;
+}
+
+.flyer-row.is-dragging {
+  z-index: 1001;
+  opacity: 0.56;
+  filter: saturate(0.7);
+}
+
+.flyer-row:hover,
+.flyer-row:focus-within {
+  z-index: 1000;
+}
+
+.flyer-row:hover .row-grip,
+.flyer-row:focus-within .row-grip,
+.flyer-row.is-dragging .row-grip {
+  opacity: 1;
+}
+
+.row-grip {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 9999;
+  display: grid;
+  width: 28px;
+  height: 34px;
+  place-content: center;
+  gap: 4px;
+  border: 3px solid var(--ink);
+  background: var(--paper-soft);
+  box-shadow: 3px 3px 0 rgba(19, 17, 14, 0.24);
+  cursor: grab;
+  opacity: 0;
+  padding: 0;
+  touch-action: none;
+  transform: translate(-68%, -50%);
+}
+
+.row-grip:active {
+  cursor: grabbing;
+}
+
+.row-grip span {
+  display: block;
+  width: 12px;
+  height: 3px;
+  background: var(--ink);
+}
+
+.signature p,
+.copy-card p {
+  margin: 0;
+}
+
+.editable-text {
+  cursor: text;
+  outline: 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.editable-text:hover {
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--accent-2), transparent 34%);
+}
+
+.editable-text:focus {
+  background: color-mix(in srgb, var(--paper-soft), transparent 10%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2), transparent 34%);
+}
+
+.signature {
+  width: min(540px, 100%);
+  margin: 0 0 8px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 3px solid var(--ink);
+  background: var(--panel);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 58%);
+  transform: rotate(-1deg);
+}
+
+.community-mark {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--ink) 0 10%, transparent 11% 33%, var(--ink) 34% 38%, transparent 39%),
+    conic-gradient(from 18deg, transparent 0 12%, rgba(19, 17, 14, 0.9) 12% 17%, transparent 17% 29%, rgba(19, 17, 14, 0.9) 29% 34%, transparent 34% 46%, rgba(19, 17, 14, 0.9) 46% 51%, transparent 51% 63%, rgba(19, 17, 14, 0.9) 63% 68%, transparent 68% 80%, rgba(19, 17, 14, 0.9) 80% 85%, transparent 85%),
+    var(--panel);
+}
+
+.community-avatar-image {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.community-mark.has-avatar::after {
+  display: none;
+}
+
+.signature-prefix {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.community-name {
+  display: block;
+  margin-top: 3px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.18rem, 3.5vw, 1.8rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.community-line {
+  margin-top: 6px !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.86rem, 1.6vw, 1rem);
+  line-height: 1.18;
+}
+
+h1 {
+  max-width: 680px;
+  margin: 14px 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 8.7vw, 6rem);
+  font-weight: 900;
+  line-height: 0.84;
+  text-transform: uppercase;
+  text-wrap: balance;
+  text-shadow: 4px 4px 0 var(--paper-soft), 6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 54%);
+}
+
+.when-where-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin: 4px 0 10px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.when-where-item {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 2px solid color-mix(in srgb, var(--ink), transparent 34%);
+  background: color-mix(in srgb, var(--paper-soft), var(--accent-1) 5%);
+}
+
+.when-where-item strong {
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.when-where-item p {
+  margin: 0;
+  overflow: hidden;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.88rem, 1.5vw, 1.05rem);
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster-art {
+  position: relative;
+  min-height: clamp(210px, 36vw, 300px);
+  margin: 10px 0 14px;
+  border: 5px solid var(--ink);
+  background:
+    linear-gradient(155deg, transparent 0 32%, rgba(236, 233, 223, 0.62) 33% 42%, transparent 43%),
+    radial-gradient(circle at 58% 38%, rgba(236, 233, 223, 0.15) 0 18%, transparent 19%),
+    #151515;
+  overflow: hidden;
+}
+
+.poster-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-2), transparent 76%), transparent 18% 82%, color-mix(in srgb, var(--accent-3), transparent 78%)),
+    radial-gradient(circle at 70% 34%, color-mix(in srgb, var(--accent-1), transparent 78%) 0 18%, transparent 19%);
+  mix-blend-mode: screen;
+  opacity: 0.46;
+}
+
+.poster-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.7) sepia(0.12) contrast(1.08);
+}
+
+.poster-art.has-image .record,
+.poster-art.has-image .camera-body,
+.poster-art.has-image .camera-lens,
+.poster-art.has-image .film-strip,
+.poster-art.has-image .moon {
+  display: none;
+}
+
+.poster-art.has-image {
+  background: #151515;
+}
+
+.my-flyer-viewport {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: clamp(600px, 78vw, 720px);
+  margin: 10px 0 14px;
+  padding: 18px;
+  border: 5px solid var(--ink);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--paper-soft), var(--accent-2) 8%), var(--cream)),
+    var(--paper-soft);
+  overflow: hidden;
+}
+
+.my-flyer-viewport::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 2px solid color-mix(in srgb, var(--ink), transparent 52%);
+  pointer-events: none;
+}
+
+.my-flyer-image {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--cream), white 18%);
+  box-shadow: 0 8px 0 color-mix(in srgb, var(--ink), transparent 86%);
+}
+
+.moon {
+  position: absolute;
+  z-index: 1;
+  top: 34px;
+  left: 42px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cream);
+  box-shadow: 11px 0 0 #151515;
+}
+
+.record {
+  position: absolute;
+  z-index: 1;
+  right: 12%;
+  top: 14%;
+  width: clamp(118px, 20vw, 170px);
+  aspect-ratio: 1;
+  border: 14px solid var(--ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--cream) 0 12%, color-mix(in srgb, var(--accent-2), transparent 20%) 13% 19%, transparent 20%),
+    repeating-radial-gradient(circle, transparent 0 11px, rgba(236, 233, 223, 0.34) 12px 13px);
+  transform: rotate(10deg);
+}
+
+.camera-body {
+  position: absolute;
+  z-index: 1;
+  left: 12%;
+  top: 42%;
+  width: 58%;
+  height: 30%;
+  border: 10px solid color-mix(in srgb, var(--accent-3), transparent 32%);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(236, 233, 223, 0.16), rgba(19, 17, 14, 0.42)),
+    rgba(236, 233, 223, 0.08);
+  box-shadow: -6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 42%), 5px -5px 0 var(--cream);
+  transform: rotate(-7deg);
+}
+
+.camera-body::before,
+.camera-body::after {
+  content: "";
+  position: absolute;
+}
+
+.camera-body::before {
+  left: 8%;
+  top: -32px;
+  width: 28%;
+  height: 34px;
+  border: 8px solid color-mix(in srgb, var(--accent-3), transparent 32%);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: #151515;
+}
+
+.camera-body::after {
+  right: 8%;
+  top: 18%;
+  width: 58px;
+  height: 18px;
+  border: 5px solid var(--cream);
+  background: var(--ink);
+}
+
+.camera-lens {
+  position: absolute;
+  z-index: 1;
+  left: 43%;
+  top: 40%;
+  width: clamp(92px, 15vw, 140px);
+  aspect-ratio: 1;
+  border: 13px solid var(--ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--cream) 0 13%, color-mix(in srgb, var(--accent-2), transparent 44%) 14% 23%, color-mix(in srgb, var(--accent-3), transparent 42%) 24% 37%, rgba(236, 233, 223, 0.32) 38% 56%, rgba(19, 17, 14, 0.48) 57% 100%);
+  box-shadow: 8px 8px 0 rgba(19, 17, 14, 0.28);
+}
+
+.film-strip {
+  position: absolute;
+  z-index: 1;
+  left: 5%;
+  bottom: 12%;
+  width: 46%;
+  height: 42px;
+  border: 5px solid var(--cream);
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 18px, transparent 18px 30px),
+    color-mix(in srgb, var(--accent-2), transparent 44%);
+  transform: rotate(8deg);
+}
+
+.ribbon {
+  position: absolute;
+  z-index: 3;
+  right: -34px;
+  bottom: 24px;
+  padding: 9px 42px 10px 22px;
+  color: var(--ink);
+  background: var(--cream);
+  border: 4px solid var(--ink);
+  font-size: clamp(0.9rem, 2vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-7deg);
+}
+
+.community-copy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding-top: 14px;
+  border-top: 5px solid var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.9rem, 1.55vw, 1.05rem);
+  font-weight: 700;
+  line-height: 1.32;
+}
+
+.copy-card {
+  padding: 10px;
+  background: var(--panel);
+  border: 3px solid rgba(19, 17, 14, 0.72);
+}
+
+.copy-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vibe-70s-community {
+  border-color: #e9e0ca;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 36%) 0 8px, transparent 8px calc(100% - 8px), color-mix(in srgb, var(--accent-2), transparent 42%) calc(100% - 8px)),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-1), transparent 54%) 0 7px, transparent 7px calc(100% - 7px), color-mix(in srgb, var(--accent-1), transparent 48%) calc(100% - 7px)),
+    #fbf8ed;
+}
+
+.vibe-70s-community .signature,
+.vibe-70s-community .copy-card {
+  border-radius: 14px 2px 14px 2px;
+  background: #f6edd1;
+}
+
+.vibe-70s-community .when-where-item {
+  border-radius: 12px 2px 12px 2px;
+  border-width: 0;
+  background: #f6edd1;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--accent-3), transparent 88%);
+}
+
+.vibe-70s-community h1 {
+  max-width: 700px;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.01em;
+  text-shadow: 4px 4px 0 #fbf8ed, 7px 7px 0 color-mix(in srgb, var(--accent-3), transparent 54%);
+}
+
+.vibe-70s-community .poster-photo {
+  filter: grayscale(0.45) sepia(0.18) saturate(1.02) contrast(1.06);
+}
+
+.vibe-disco-rink {
+  border-color: #f2eee4;
+  background:
+    radial-gradient(circle at 92% 7%, color-mix(in srgb, var(--accent-2), transparent 74%) 0 2px, transparent 3px 20px),
+    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--accent-1), transparent 78%) 0 2px, transparent 3px 18px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 52%) 0 7px, transparent 7px calc(100% - 7px), color-mix(in srgb, var(--accent-2), transparent 56%) calc(100% - 7px)),
+    #fffaf0;
+}
+
+.vibe-disco-rink .signature {
+  margin-left: auto;
+  transform: rotate(1.2deg);
+  background: #fff7e2;
+  box-shadow: -5px 5px 0 color-mix(in srgb, var(--accent-1), transparent 58%);
+}
+
+.vibe-disco-rink .community-name,
+.vibe-disco-rink h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+.vibe-disco-rink h1 {
+  max-width: 690px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-shadow:
+    3px 3px 0 #fffaf0,
+    7px 7px 0 color-mix(in srgb, var(--accent-1), transparent 56%),
+    -3px -2px 0 color-mix(in srgb, var(--accent-2), transparent 70%);
+  transform: skew(-4deg);
+}
+
+.vibe-disco-rink .poster-art {
+  border-width: 6px;
+  border-color: #111;
+  box-shadow: inset 0 0 0 2px #fffaf0;
+}
+
+.vibe-disco-rink .poster-photo {
+  filter: grayscale(0.2) saturate(0.92) contrast(1.08);
+}
+
+.vibe-disco-rink .copy-card {
+  background: #fff7e2;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-2), transparent 70%);
+}
+
+.vibe-xerox-punk {
+  border-color: #f2f2ea;
+  background:
+    radial-gradient(circle at 18% 32%, rgba(17, 17, 17, 0.18) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-2deg, rgba(17, 17, 17, 0.06) 0 2px, transparent 2px 9px),
+    #f8f8f2;
+}
+
+.vibe-xerox-punk .signature {
+  width: min(620px, 100%);
+  transform: rotate(-1.6deg);
+  background: #fff;
+  box-shadow: 7px 7px 0 color-mix(in srgb, var(--accent-3), transparent 30%);
+}
+
+.vibe-xerox-punk .community-name,
+.vibe-xerox-punk h1 {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+}
+
+.vibe-xerox-punk .community-line,
+.vibe-xerox-punk .community-copy,
+.vibe-xerox-punk .when-where-row {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.vibe-xerox-punk .when-where-item {
+  background: #fff;
+  border-width: 3px;
+  box-shadow: 4px 4px 0 rgba(17, 17, 17, 0.14);
+}
+
+.vibe-xerox-punk h1 {
+  max-width: 650px;
+  font-size: clamp(3.6rem, 9vw, 6.5rem);
+  letter-spacing: 0.015em;
+  line-height: 0.9;
+  text-shadow: 2px 2px 0 #f8f8f2, 5px 5px 0 rgba(17, 17, 17, 0.2);
+  transform: rotate(0.6deg);
+}
+
+.vibe-xerox-punk .poster-photo {
+  filter: grayscale(1) contrast(1.52);
+}
+
+.vibe-xerox-punk .copy-card {
+  background: #fff;
+  border-width: 4px;
+  box-shadow: 5px 5px 0 rgba(17, 17, 17, 0.18);
+}
+
+.vibe-80s-mall-pop {
+  border-color: #f4f0e8;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 78%) 0 8px, transparent 8px 20px),
+    linear-gradient(180deg, transparent 0 72%, color-mix(in srgb, var(--accent-3), transparent 78%) 72%),
+    #fff8ee;
+}
+
+.vibe-80s-mall-pop .signature {
+  border-width: 4px;
+  transform: rotate(0deg);
+  background: #fffaf2;
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 56%);
+}
+
+.vibe-80s-mall-pop .community-name,
+.vibe-80s-mall-pop h1 {
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  font-weight: 900;
+}
+
+.vibe-80s-mall-pop h1 {
+  max-width: 690px;
+  font-size: clamp(3.05rem, 8.1vw, 5.7rem);
+  line-height: 0.88;
+  text-shadow:
+    3px 3px 0 #fff8ee,
+    7px 7px 0 color-mix(in srgb, var(--accent-1), transparent 44%),
+    -4px -3px 0 color-mix(in srgb, var(--accent-2), transparent 62%);
+}
+
+.vibe-80s-mall-pop .poster-art::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  height: 34px;
+  background:
+    repeating-conic-gradient(var(--ink) 0 25%, transparent 0 50%) 0 0 / 28px 28px,
+    color-mix(in srgb, var(--accent-1), transparent 48%);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.vibe-80s-mall-pop .poster-photo {
+  filter: grayscale(0.25) saturate(0.9) contrast(1.08);
+}
+
+.vibe-90s-block-party {
+  border-color: #f2efe3;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 42%) 0 10px, transparent 10px calc(100% - 10px), color-mix(in srgb, var(--accent-1), transparent 44%) calc(100% - 10px)),
+    repeating-linear-gradient(0deg, rgba(17, 17, 17, 0.035) 0 2px, transparent 2px 12px),
+    #fff8e6;
+}
+
+.vibe-90s-block-party .signature {
+  width: min(650px, 100%);
+  transform: rotate(-0.7deg);
+  background: #fff1c6;
+  box-shadow: 7px 7px 0 color-mix(in srgb, var(--accent-3), transparent 58%);
+}
+
+.vibe-90s-block-party .community-name,
+.vibe-90s-block-party h1 {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+}
+
+.vibe-90s-block-party h1 {
+  max-width: 680px;
+  font-size: clamp(3.4rem, 8.7vw, 6.3rem);
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-shadow:
+    4px 4px 0 #fff8e6,
+    8px 8px 0 color-mix(in srgb, var(--accent-3), transparent 42%),
+    -3px -3px 0 color-mix(in srgb, var(--accent-1), transparent 62%);
+}
+
+.vibe-90s-block-party .poster-art {
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--accent-2), transparent 54%);
+}
+
+.vibe-90s-block-party .poster-photo {
+  filter: grayscale(0.34) saturate(0.9) contrast(1.16);
+}
+
+.vibe-90s-block-party .copy-card {
+  background: #fff1c6;
+  border-width: 4px;
+}
+
+.vibe-90s-block-party .when-where-item {
+  background: #fff1c6;
+  border-width: 3px;
+}
+
+.vibe-00s-zine-web {
+  border-color: #f0eee7;
+  background:
+    linear-gradient(90deg, transparent 0 36px, rgba(215, 90, 120, 0.16) 36px 39px, transparent 39px),
+    repeating-linear-gradient(0deg, transparent 0 24px, rgba(29, 38, 48, 0.08) 24px 25px),
+    #fbfaf4;
+}
+
+.vibe-00s-zine-web .signature {
+  width: min(610px, 100%);
+  transform: rotate(1deg);
+  background: #fff;
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 58%);
+}
+
+.vibe-00s-zine-web .signature-prefix,
+.vibe-00s-zine-web .copy-card strong,
+.vibe-00s-zine-web h1,
+.vibe-00s-zine-web .when-where-item strong {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.vibe-00s-zine-web .community-name,
+.vibe-00s-zine-web .community-line,
+.vibe-00s-zine-web .community-copy {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.vibe-00s-zine-web h1 {
+  max-width: 700px;
+  font-size: clamp(2.6rem, 7.2vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-shadow: 3px 3px 0 #fff, 6px 5px 0 color-mix(in srgb, var(--accent-1), transparent 48%);
+  transform: rotate(-1deg);
+}
+
+.vibe-00s-zine-web .poster-art {
+  border: 4px solid var(--ink);
+  transform: rotate(0.6deg);
+}
+
+.vibe-00s-zine-web .poster-photo {
+  filter: grayscale(0.2) sepia(0.06) saturate(0.8) contrast(1.04);
+}
+
+.vibe-00s-zine-web .copy-card {
+  background: #fff;
+  transform: rotate(-0.35deg);
+}
+
+.vibe-civic-now {
+  border: 1px solid rgba(19, 17, 14, 0.26);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 82%) 0 5px, transparent 5px),
+    #fbfaf6;
+  color: #1a1a1a;
+}
+
+.vibe-civic-now::before {
+  opacity: 0.1;
+}
+
+.vibe-civic-now::after {
+  inset: 12px;
+  border-color: rgba(19, 17, 14, 0.16);
+}
+
+.vibe-civic-now .signature {
+  width: 100%;
+  margin-top: 8px;
+  transform: none;
+  border: 1px solid rgba(19, 17, 14, 0.32);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.vibe-civic-now .community-name,
+.vibe-civic-now .community-line,
+.vibe-civic-now h1,
+.vibe-civic-now .community-copy,
+.vibe-civic-now .copy-card strong,
+.vibe-civic-now .ribbon,
+.vibe-civic-now .when-where-row,
+.vibe-civic-now .when-where-item p {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.vibe-civic-now .when-where-item {
+  border-width: 1px;
+  border-color: rgba(19, 17, 14, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.vibe-civic-now h1 {
+  max-width: 680px;
+  font-size: clamp(2.7rem, 7.4vw, 5.3rem);
+  line-height: 0.94;
+  letter-spacing: 0;
+  text-shadow: none;
+  text-transform: none;
+}
+
+.vibe-civic-now .poster-art {
+  border-width: 1px;
+  border-color: rgba(19, 17, 14, 0.26);
+}
+
+.vibe-civic-now .poster-photo {
+  filter: saturate(0.88) contrast(1.02);
+}
+
+.vibe-civic-now .community-copy {
+  border-top-width: 1px;
+  font-weight: 600;
+}
+
+.vibe-civic-now .copy-card {
+  border: 1px solid rgba(19, 17, 14, 0.32);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.community-flyer {
+  --flyer-pad: clamp(28px, 5vw, 48px);
+  --row-overlap: 0px;
+  --frame-border: 3px;
+  --frame-radius: 0;
+  --frame-inset: 10px;
+  --frame-shadow-vibe: var(--shadow);
+  --signature-width: min(650px, 100%);
+  --signature-pad: clamp(12px, 2vw, 18px);
+  --signature-border: 3px;
+  --signature-radius: 0;
+  --signature-rotate: 0deg;
+  --signature-shadow: none;
+  --mark-size: 50px;
+  --title-size: clamp(3.3rem, 8.8vw, 6.1rem);
+  --title-line: 0.86;
+  --title-align: left;
+  --title-margin: 12px 0;
+  --title-transform-vibe: none;
+  --title-shadow-vibe: 4px 4px 0 var(--paper-soft), 6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 54%);
+  --title-word-gap: 0.16em;
+  --image-ratio: 16 / 7;
+  --image-border: 5px;
+  --image-radius: 0;
+  --image-rotate: 0deg;
+  --image-shadow: none;
+  --image-filter: grayscale(0.25) sepia(0.06) contrast(1.08);
+  --image-caption-rotate: -5deg;
+  --copy-grid: 1fr 1fr;
+  --copy-gap: 12px;
+  --copy-border: 3px;
+  --copy-radius: 0;
+  --copy-shadow: none;
+  --copy-pad: clamp(12px, 2vw, 18px);
+  padding: var(--flyer-pad);
+  border-width: var(--frame-border);
+  border-radius: var(--frame-radius);
+  box-shadow: var(--frame-shadow-vibe);
+}
+
+.community-flyer::after {
+  inset: var(--frame-inset);
+}
+
+.flyer-rows {
+  gap: 0;
+  padding: 0;
+}
+
+.flyer-row {
+  transform-origin: center;
+}
+
+.flyer-row + .flyer-row {
+  margin-top: var(--row-overlap);
+}
+
+.signature {
+  width: var(--signature-width);
+  margin: 0;
+  padding: var(--signature-pad);
+  border-width: var(--signature-border);
+  border-radius: var(--signature-radius);
+  box-shadow: var(--signature-shadow);
+  transform: rotate(var(--signature-rotate));
+}
+
+.community-mark {
+  width: var(--mark-size);
+  height: var(--mark-size);
+}
+
+.flyer-title {
+  max-width: 100%;
+  margin: var(--title-margin);
+  font-size: var(--title-size);
+  line-height: var(--title-line);
+  text-align: var(--title-align);
+  text-shadow: var(--title-shadow-vibe);
+  transform: var(--title-transform-vibe);
+}
+
+.flyer-title-word {
+  display: inline-block;
+  margin-right: var(--title-word-gap);
+}
+
+.poster-art {
+  aspect-ratio: var(--image-ratio);
+  min-height: 0;
+  margin: 12px 0;
+  border-width: var(--image-border);
+  border-radius: var(--image-radius);
+  box-shadow: var(--image-shadow);
+  transform: rotate(var(--image-rotate));
+}
+
+.poster-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.poster-photo {
+  position: static;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--image-filter);
+}
+
+.ribbon {
+  transform: rotate(var(--image-caption-rotate));
+}
+
+.community-copy {
+  grid-template-columns: var(--copy-grid);
+  gap: var(--copy-gap);
+  margin: 12px 0 0;
+}
+
+.community-copy-single {
+  grid-template-columns: 1fr;
+}
+
+.copy-card {
+  padding: var(--copy-pad);
+  border-width: var(--copy-border);
+  border-radius: var(--copy-radius);
+  box-shadow: var(--copy-shadow);
+}
+
+.vibe-70s-community {
+  --flyer-pad: clamp(34px, 5.5vw, 58px);
+  --row-overlap: -2px;
+  --frame-border: 4px;
+  --frame-radius: 18px;
+  --frame-inset: 13px;
+  --signature-width: min(660px, 88%);
+  --signature-border: 4px;
+  --signature-radius: 18px 3px 18px 3px;
+  --signature-rotate: -1deg;
+  --signature-shadow: 8px 8px 0 color-mix(in srgb, var(--accent-3), transparent 42%);
+  --title-size: clamp(3.4rem, 9.8vw, 7rem);
+  --title-line: 0.82;
+  --title-align: center;
+  --title-margin: 18px 0 18px;
+  --title-shadow-vibe: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 58%);
+  --image-ratio: 16 / 7.2;
+  --image-border: 5px;
+  --image-radius: 12px;
+  --image-filter: sepia(0.24) saturate(1.08) contrast(1.04);
+  --copy-border: 4px;
+  --copy-radius: 14px 3px 14px 3px;
+  --copy-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 64%);
+  border-style: double;
+}
+
+.vibe-70s-community::before {
+  background:
+    radial-gradient(circle, rgba(17, 17, 17, 0.08) 0 1px, transparent 1px 6px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 36%) 0 8px, transparent 8px calc(100% - 8px), color-mix(in srgb, var(--accent-2), transparent 42%) calc(100% - 8px));
+  opacity: 0.62;
+}
+
+.vibe-70s-community .poster-art::after {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 86%), transparent 35% 75%, color-mix(in srgb, var(--accent-3), transparent 84%));
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+
+.vibe-disco-rink {
+  --flyer-pad: clamp(28px, 4.5vw, 46px);
+  --row-overlap: -5px;
+  --frame-border: 2px;
+  --frame-inset: 14px;
+  --signature-width: min(680px, 82%);
+  --signature-border: 3px;
+  --signature-radius: 0;
+  --signature-rotate: 1.5deg;
+  --signature-shadow: -9px 9px 0 color-mix(in srgb, var(--accent-1), transparent 55%), 9px 9px 0 color-mix(in srgb, var(--accent-2), transparent 62%);
+  --title-size: clamp(4rem, 10.8vw, 8rem);
+  --title-line: 0.78;
+  --title-align: center;
+  --title-transform-vibe: skewX(-8deg);
+  --title-shadow-vibe: 4px 4px 0 color-mix(in srgb, var(--accent-1), transparent 18%), -4px 6px 0 color-mix(in srgb, var(--accent-2), transparent 28%);
+  --image-ratio: 16 / 6.2;
+  --image-border: 7px;
+  --image-filter: saturate(1.22) contrast(1.13);
+  --copy-border: 3px;
+  --copy-radius: 0;
+  --copy-shadow: 6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 66%);
+}
+
+.vibe-disco-rink::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.88) 0 2px, transparent 3px) 0 0 / 36px 36px,
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 52%) 0 8px, transparent 8px calc(100% - 8px), color-mix(in srgb, var(--accent-2), transparent 52%) calc(100% - 8px));
+  opacity: 0.86;
+}
+
+.vibe-disco-rink .poster-art {
+  box-shadow: inset 0 0 0 2px #fffaf0;
+}
+
+.vibe-disco-rink .poster-art::after {
+  background:
+    radial-gradient(circle at 78% 25%, rgba(255, 255, 255, 0.45), transparent 18%),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 72%), color-mix(in srgb, var(--accent-2), transparent 76%));
+  mix-blend-mode: screen;
+  opacity: 0.74;
+}
+
+.vibe-disco-rink .copy-card strong {
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 4px;
+}
+
+.vibe-xerox-punk {
+  --flyer-pad: clamp(20px, 3.5vw, 34px);
+  --row-overlap: -12px;
+  --frame-border: 7px;
+  --frame-inset: 8px;
+  --signature-width: min(690px, 100%);
+  --signature-border: 5px;
+  --signature-radius: 0;
+  --signature-rotate: -2deg;
+  --signature-shadow: 9px 9px 0 color-mix(in srgb, var(--accent-3), transparent 35%);
+  --title-size: clamp(4rem, 11.8vw, 8.5rem);
+  --title-line: 0.78;
+  --title-align: left;
+  --title-margin: -6px 0 10px;
+  --title-shadow-vibe: 5px 5px 0 rgba(0, 0, 0, 0.18);
+  --image-ratio: 16 / 6.8;
+  --image-border: 7px;
+  --image-filter: grayscale(1) contrast(1.85);
+  --copy-grid: 1.1fr 0.9fr;
+  --copy-border: 5px;
+  --copy-radius: 0;
+  --copy-shadow: 7px 7px 0 #777;
+}
+
+.vibe-xerox-punk::before {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 5px),
+    radial-gradient(circle, rgba(0, 0, 0, 0.28) 0 0.8px, transparent 1px);
+  background-size: auto, 4px 4px;
+  opacity: 0.55;
+}
+
+.vibe-xerox-punk .copy-card:nth-child(1) {
+  transform: rotate(-0.6deg);
+}
+
+.vibe-xerox-punk .copy-card:nth-child(2) {
+  transform: rotate(0.8deg);
+}
+
+.vibe-xerox-punk .ribbon {
+  border-width: 4px;
+  background: #fff;
+}
+
+.vibe-80s-mall-pop {
+  --flyer-pad: clamp(24px, 4vw, 42px);
+  --row-overlap: -4px;
+  --frame-border: 2px;
+  --frame-inset: 10px;
+  --signature-width: min(640px, 78%);
+  --signature-border: 5px;
+  --signature-radius: 0;
+  --signature-rotate: 0deg;
+  --signature-shadow: 10px 10px 0 color-mix(in srgb, var(--accent-2), transparent 42%);
+  --title-size: clamp(3.6rem, 9.9vw, 7.4rem);
+  --title-line: 0.82;
+  --title-shadow-vibe: 4px 4px 0 color-mix(in srgb, var(--accent-2), transparent 12%), 8px 8px 0 color-mix(in srgb, var(--accent-1), transparent 18%);
+  --image-ratio: 16 / 7.2;
+  --image-border: 6px;
+  --image-filter: saturate(1.25) contrast(1.06);
+  --copy-grid: 1.15fr 0.85fr;
+  --copy-border: 4px;
+  --copy-shadow: 8px 8px 0 color-mix(in srgb, var(--accent-1), transparent 55%);
+}
+
+.vibe-80s-mall-pop::before {
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 82%) 0 14px, transparent 14px 32px),
+    linear-gradient(180deg, transparent 0 calc(100% - 70px), color-mix(in srgb, var(--accent-3), transparent 76%) calc(100% - 70px));
+  opacity: 1;
+}
+
+.vibe-80s-mall-pop .poster-art::before {
+  inset: auto 0 0;
+  height: 44px;
+  background: repeating-linear-gradient(90deg, rgba(0, 191, 216, 0.65) 0 18px, rgba(0, 0, 0, 0.72) 18px 36px);
+}
+
+.vibe-80s-mall-pop .flyer-title-word:nth-child(2n) {
+  transform: translateY(0.06em);
+}
+
+.vibe-90s-block-party {
+  --flyer-pad: clamp(26px, 4.25vw, 44px);
+  --row-overlap: -8px;
+  --frame-border: 5px;
+  --frame-inset: 10px;
+  --signature-width: min(680px, 92%);
+  --signature-border: 5px;
+  --signature-radius: 0;
+  --signature-rotate: -1deg;
+  --signature-shadow: 12px 12px 0 color-mix(in srgb, var(--accent-3), transparent 58%);
+  --title-size: clamp(4.2rem, 11.7vw, 8.8rem);
+  --title-line: 0.76;
+  --title-align: center;
+  --title-shadow-vibe: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 8px 8px 0 color-mix(in srgb, var(--accent-3), transparent 50%), -8px -4px 0 color-mix(in srgb, var(--accent-1), transparent 65%);
+  --image-ratio: 16 / 6.5;
+  --image-border: 8px;
+  --image-shadow: 14px 14px 0 color-mix(in srgb, var(--accent-2), transparent 55%);
+  --image-filter: contrast(1.15) saturate(1.15);
+  --copy-grid: 0.95fr 1.05fr;
+  --copy-border: 5px;
+  --copy-shadow: 9px 9px 0 rgba(17, 17, 17, 0.2);
+}
+
+.vibe-90s-block-party::before {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 50%) 0 10px, transparent 10px calc(100% - 10px), color-mix(in srgb, var(--accent-1), transparent 50%) calc(100% - 10px)),
+    radial-gradient(circle, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 5px);
+  opacity: 0.9;
+}
+
+.vibe-90s-block-party .copy-card {
+  background: #fff1c6;
+}
+
+.vibe-00s-zine-web {
+  --flyer-pad: clamp(26px, 4.25vw, 44px);
+  --row-overlap: -3px;
+  --frame-border: 2px;
+  --frame-inset: 12px;
+  --signature-width: min(670px, 92%);
+  --signature-border: 4px;
+  --signature-radius: 3px;
+  --signature-rotate: 1deg;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 55%);
+  --title-size: clamp(3rem, 8vw, 6rem);
+  --title-line: 0.95;
+  --title-shadow-vibe: 4px 4px 0 color-mix(in srgb, var(--accent-1), transparent 30%);
+  --image-ratio: 4 / 3;
+  --image-border: 12px;
+  --image-radius: 2px;
+  --image-rotate: -1.5deg;
+  --image-shadow: 4px 6px 0 rgba(0, 0, 0, 0.18);
+  --image-filter: saturate(0.85) contrast(1.08);
+  --copy-border: 3px;
+  --copy-radius: 3px;
+  --copy-shadow: 4px 6px 0 rgba(0, 0, 0, 0.16);
+}
+
+.vibe-00s-zine-web::before {
+  background:
+    linear-gradient(90deg, transparent 0 44px, rgba(255, 100, 130, 0.28) 44px 46px, transparent 46px),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(0, 0, 0, 0.08) 31px 32px);
+}
+
+.vibe-00s-zine-web .signature::before,
+.vibe-00s-zine-web .poster-art::before {
+  content: "";
+  position: absolute;
+  width: 72px;
+  height: 22px;
+  top: -12px;
+  left: 24px;
+  z-index: 4;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 245, 190, 0.72);
+  transform: rotate(-4deg);
+}
+
+.vibe-00s-zine-web .flyer-title-word:nth-child(2n) {
+  transform: rotate(-2deg) translateY(0.08em);
+}
+
+.vibe-00s-zine-web .flyer-title-word:nth-child(3n) {
+  transform: rotate(1.5deg) translateX(0.12em);
+}
+
+.vibe-civic-now {
+  --flyer-pad: clamp(32px, 5vw, 52px);
+  --row-overlap: 0px;
+  --frame-border: 1px;
+  --frame-radius: 0;
+  --frame-inset: 12px;
+  --frame-shadow-vibe: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --signature-width: 100%;
+  --signature-border: 1px;
+  --signature-radius: 8px;
+  --signature-rotate: 0deg;
+  --signature-shadow: none;
+  --title-size: clamp(3.5rem, 8.8vw, 7rem);
+  --title-line: 0.98;
+  --title-align: left;
+  --title-shadow-vibe: none;
+  --title-word-gap: 0.22em;
+  --image-ratio: 16 / 6.6;
+  --image-border: 1px;
+  --image-radius: 0;
+  --image-filter: saturate(1.02) contrast(1.02);
+  --image-caption-rotate: 0deg;
+  --copy-border: 1px;
+  --copy-radius: 8px;
+  --copy-shadow: none;
+}
+
+.vibe-civic-now::before {
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.18) 0 8px, transparent 8px);
+  opacity: 1;
+}
+
+.vibe-civic-now .ribbon {
+  border-width: 1px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.community-flyer .signature {
+  width: var(--signature-width);
+  padding: var(--signature-pad);
+  border-width: var(--signature-border);
+  border-radius: var(--signature-radius);
+  box-shadow: var(--signature-shadow);
+  transform: rotate(var(--signature-rotate));
+}
+
+.community-flyer .flyer-title {
+  margin: var(--title-margin);
+  font-size: var(--title-size);
+  line-height: var(--title-line);
+  text-align: var(--title-align);
+  text-shadow: var(--title-shadow-vibe);
+  transform: var(--title-transform-vibe);
+}
+
+.community-flyer .poster-art {
+  aspect-ratio: var(--image-ratio);
+  border-width: var(--image-border);
+  border-radius: var(--image-radius);
+  box-shadow: var(--image-shadow);
+  transform: rotate(var(--image-rotate));
+}
+
+.community-flyer .poster-photo {
+  filter: var(--image-filter);
+}
+
+.community-flyer .community-copy {
+  grid-template-columns: var(--copy-grid);
+  gap: var(--copy-gap);
+}
+
+.community-flyer .community-copy-single {
+  grid-template-columns: 1fr;
+}
+
+.community-flyer .copy-card {
+  padding: var(--copy-pad);
+  border-width: var(--copy-border);
+  border-radius: var(--copy-radius);
+  box-shadow: var(--copy-shadow);
+}
+
+@media (max-width: 640px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-panel {
+    position: static;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+  }
+
+  .community-copy {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .community-flyer {
+    border-width: 10px;
+  }
+
+  h1 {
+    font-size: clamp(3.05rem, 14vw, 4.1rem);
+    line-height: 0.9;
+    text-shadow: 3px 3px 0 var(--paper-soft), 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 54%);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1060px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-panel {
+    position: static;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    width: min(760px, 100%);
+    justify-self: center;
+  }
+
+  .community-flyer {
+    justify-self: center;
+  }
+}
+
+/* Understated vibe pass: one signature gesture per vibe, modular rows stay intact. */
+.community-flyer {
+  --frame-shadow-vibe: 0 18px 40px rgba(17, 13, 8, 0.14);
+  --row-overlap: 0px;
+  --flyer-pad: clamp(30px, 5vw, 50px);
+  --frame-border: 2px;
+  --frame-radius: 0;
+  --frame-inset: 12px;
+  --signature-width: min(650px, 92%);
+  --signature-pad: clamp(12px, 1.8vw, 18px);
+  --signature-border: 2px;
+  --signature-radius: 0;
+  --signature-rotate: 0deg;
+  --signature-shadow: none;
+  --title-size: clamp(3rem, 8.4vw, 6rem);
+  --title-line: 0.9;
+  --title-align: left;
+  --title-margin: 16px 0;
+  --title-transform-vibe: none;
+  --title-shadow-vibe: none;
+  --title-word-gap: 0.16em;
+  --image-ratio: 16 / 7;
+  --image-border: 3px;
+  --image-radius: 0;
+  --image-rotate: 0deg;
+  --image-shadow: none;
+  --image-filter: saturate(0.95) contrast(1.04);
+  --image-caption-rotate: -3deg;
+  --copy-grid: 1fr 1fr;
+  --copy-gap: 14px;
+  --copy-border: 2px;
+  --copy-radius: 0;
+  --copy-shadow: none;
+  --copy-pad: clamp(12px, 2vw, 18px);
+  background: #fbfaf5;
+}
+
+.community-flyer::before {
+  opacity: 0.18;
+}
+
+.community-flyer::after {
+  border-width: 1px;
+}
+
+.community-flyer .poster-art {
+  margin: 14px 0;
+}
+
+.community-flyer .poster-art::before,
+.community-flyer .poster-art::after {
+  background: none;
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+
+.community-flyer .poster-photo {
+  filter: var(--image-filter);
+}
+
+.community-flyer .ribbon {
+  border-width: 2px;
+  letter-spacing: 0.1em;
+}
+
+.community-flyer .copy-card {
+  background: color-mix(in srgb, var(--paper-soft), var(--paper) 24%);
+}
+
+.vibe-70s-community {
+  --flyer-pad: clamp(34px, 5.4vw, 56px);
+  --frame-border: 3px;
+  --frame-radius: 16px;
+  --frame-inset: 14px;
+  --signature-width: min(640px, 90%);
+  --signature-border: 3px;
+  --signature-radius: 15px 4px 15px 4px;
+  --signature-rotate: -0.45deg;
+  --signature-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-3), transparent 70%);
+  --title-size: clamp(3rem, 8.2vw, 5.9rem);
+  --title-line: 0.88;
+  --title-align: center;
+  --title-margin: 18px 0;
+  --title-shadow-vibe: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 76%);
+  --image-ratio: 16 / 7.1;
+  --image-border: 3px;
+  --image-radius: 10px;
+  --image-filter: sepia(0.16) saturate(0.98) contrast(1.02);
+  --copy-border: 3px;
+  --copy-radius: 12px 4px 12px 4px;
+  --copy-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 78%);
+  border-style: solid;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 58%) 0 5px, transparent 5px calc(100% - 5px), color-mix(in srgb, var(--accent-2), transparent 64%) calc(100% - 5px)),
+    #fbf7ea;
+}
+
+.vibe-70s-community::before {
+  background: radial-gradient(circle, rgba(17, 17, 17, 0.07) 0 1px, transparent 1px 7px);
+  opacity: 0.28;
+}
+
+.vibe-disco-rink {
+  --flyer-pad: clamp(30px, 4.8vw, 48px);
+  --frame-border: 2px;
+  --frame-inset: 14px;
+  --signature-width: min(670px, 84%);
+  --signature-border: 2px;
+  --signature-rotate: 0.8deg;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 78%);
+  --title-size: clamp(3.7rem, 9.8vw, 7.2rem);
+  --title-line: 0.82;
+  --title-align: center;
+  --title-transform-vibe: skewX(-6deg);
+  --title-shadow-vibe: 3px 3px 0 color-mix(in srgb, var(--accent-1), transparent 44%);
+  --image-ratio: 16 / 6.7;
+  --image-border: 4px;
+  --image-filter: saturate(1.05) contrast(1.06);
+  --copy-border: 2px;
+  --copy-shadow: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 62%) 0 5px, transparent 5px calc(100% - 5px), color-mix(in srgb, var(--accent-2), transparent 66%) calc(100% - 5px)),
+    #fff9ee;
+}
+
+.vibe-disco-rink::before {
+  background:
+    radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.95) 0 1px, transparent 2px 18px),
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--accent-1), transparent 78%) 0 2px, transparent 3px 22px);
+  opacity: 0.42;
+}
+
+.vibe-disco-rink .poster-art::after {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 84%), color-mix(in srgb, var(--accent-2), transparent 88%));
+  mix-blend-mode: screen;
+  opacity: 0.34;
+}
+
+.vibe-xerox-punk {
+  --flyer-pad: clamp(24px, 3.8vw, 38px);
+  --row-overlap: -2px;
+  --frame-border: 4px;
+  --frame-inset: 8px;
+  --signature-width: min(690px, 98%);
+  --signature-border: 3px;
+  --signature-rotate: -1.1deg;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 52%);
+  --title-size: clamp(3rem, 7.8vw, 5.8rem);
+  --title-line: 0.9;
+  --title-margin: 8px 0 10px;
+  --title-shadow-vibe: 3px 3px 0 rgba(17, 17, 17, 0.16);
+  --image-ratio: 16 / 6.9;
+  --image-border: 4px;
+  --image-filter: grayscale(1) contrast(1.42) brightness(1.03);
+  --copy-grid: 1.04fr 0.96fr;
+  --copy-border: 3px;
+  --copy-shadow: 4px 4px 0 rgba(17, 17, 17, 0.2);
+  background:
+    repeating-linear-gradient(-1deg, rgba(17, 17, 17, 0.045) 0 1px, transparent 1px 8px),
+    #f7f7f0;
+}
+
+.vibe-xerox-punk::before {
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.18) 0 0.7px, transparent 1px);
+  background-size: 5px 5px;
+  opacity: 0.34;
+}
+
+.vibe-xerox-punk .poster-art::after {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 44%, rgba(0, 0, 0, 0.08));
+  opacity: 0.55;
+}
+
+.vibe-xerox-punk .copy-card:nth-child(1) {
+  transform: rotate(-0.25deg);
+}
+
+.vibe-xerox-punk .copy-card:nth-child(2) {
+  transform: rotate(0.35deg);
+}
+
+.vibe-80s-mall-pop {
+  --flyer-pad: clamp(28px, 4.6vw, 46px);
+  --frame-border: 2px;
+  --frame-inset: 12px;
+  --signature-width: min(650px, 84%);
+  --signature-border: 3px;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 70%);
+  --title-size: clamp(3rem, 8vw, 5.8rem);
+  --title-line: 0.9;
+  --title-shadow-vibe: 2px 2px 0 color-mix(in srgb, var(--accent-1), transparent 64%);
+  --image-ratio: 16 / 7.1;
+  --image-border: 4px;
+  --image-filter: saturate(1.02) contrast(1.04);
+  --copy-grid: 1.08fr 0.92fr;
+  --copy-border: 2px;
+  --copy-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-1), transparent 78%);
+  background:
+    linear-gradient(180deg, transparent 0 calc(100% - 58px), color-mix(in srgb, var(--accent-3), transparent 82%) calc(100% - 58px)),
+    #fff8ee;
+}
+
+.vibe-80s-mall-pop::before {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 78%) 0 8px, transparent 8px),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-2), transparent 82%) 0 8px, transparent 8px);
+  opacity: 0.5;
+}
+
+.vibe-80s-mall-pop .poster-art::before {
+  inset: auto 0 0;
+  height: 28px;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 26%) 0 16px, rgba(17, 17, 17, 0.7) 16px 32px);
+  opacity: 0.55;
+}
+
+.vibe-80s-mall-pop .flyer-title-word:nth-child(2n) {
+  transform: translateY(0.035em);
+}
+
+.vibe-90s-block-party {
+  --flyer-pad: clamp(30px, 4.8vw, 48px);
+  --row-overlap: -3px;
+  --frame-border: 3px;
+  --frame-inset: 10px;
+  --signature-width: min(680px, 92%);
+  --signature-border: 3px;
+  --signature-rotate: -0.45deg;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 70%);
+  --title-size: clamp(3.4rem, 8.6vw, 6.4rem);
+  --title-line: 0.86;
+  --title-align: center;
+  --title-shadow-vibe:
+    2px 0 0 #fff8e6,
+    -2px 0 0 #fff8e6,
+    0 2px 0 #fff8e6,
+    0 -2px 0 #fff8e6,
+    5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 68%);
+  --image-ratio: 16 / 6.8;
+  --image-border: 4px;
+  --image-shadow: 6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 74%);
+  --image-filter: saturate(1.03) contrast(1.08);
+  --copy-grid: 1fr 1fr;
+  --copy-border: 3px;
+  --copy-shadow: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 60%) 0 7px, transparent 7px calc(100% - 7px), color-mix(in srgb, var(--accent-1), transparent 64%) calc(100% - 7px)),
+    repeating-linear-gradient(0deg, rgba(17, 17, 17, 0.03) 0 1px, transparent 1px 12px),
+    #fff8e6;
+}
+
+.vibe-90s-block-party::before {
+  background: none;
+  opacity: 0;
+}
+
+.vibe-90s-block-party .ribbon {
+  border-radius: 2px;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-2), transparent 72%);
+}
+
+.vibe-90s-block-party .copy-card strong {
+  display: inline-block;
+  padding: 2px 7px;
+  margin-left: -4px;
+  background: color-mix(in srgb, var(--accent-2), transparent 78%);
+}
+
+.vibe-00s-zine-web {
+  --flyer-pad: clamp(28px, 4.6vw, 46px);
+  --row-overlap: -1px;
+  --frame-border: 1px;
+  --frame-inset: 12px;
+  --signature-width: min(670px, 92%);
+  --signature-border: 2px;
+  --signature-radius: 2px;
+  --signature-rotate: 0.55deg;
+  --signature-shadow: 3px 3px 0 rgba(0, 0, 0, 0.14);
+  --title-size: clamp(2.7rem, 7.2vw, 5.3rem);
+  --title-line: 0.98;
+  --title-shadow-vibe: 3px 3px 0 color-mix(in srgb, var(--accent-1), transparent 64%);
+  --image-ratio: 16 / 8.4;
+  --image-border: 7px;
+  --image-radius: 2px;
+  --image-rotate: -0.6deg;
+  --image-shadow: 3px 4px 0 rgba(0, 0, 0, 0.16);
+  --image-filter: saturate(0.9) contrast(1.03);
+  --copy-border: 2px;
+  --copy-radius: 2px;
+  --copy-shadow: 3px 4px 0 rgba(0, 0, 0, 0.12);
+  background:
+    linear-gradient(90deg, transparent 0 44px, rgba(220, 95, 125, 0.16) 44px 46px, transparent 46px),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(29, 38, 48, 0.055) 31px 32px),
+    #fbfaf4;
+}
+
+.vibe-00s-zine-web::before {
+  background: none;
+  opacity: 0;
+}
+
+.vibe-00s-zine-web .signature::before,
+.vibe-00s-zine-web .poster-art::before {
+  width: 62px;
+  height: 18px;
+  top: -9px;
+  left: 26px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 245, 190, 0.58);
+  transform: rotate(-3deg);
+  opacity: 1;
+}
+
+.vibe-00s-zine-web .flyer-title-word:nth-child(2n) {
+  transform: rotate(-0.8deg) translateY(0.04em);
+}
+
+.vibe-00s-zine-web .flyer-title-word:nth-child(3n) {
+  transform: rotate(0.7deg) translateX(0.06em);
+}
+
+.vibe-civic-now {
+  --flyer-pad: clamp(34px, 5.2vw, 54px);
+  --frame-border: 1px;
+  --frame-radius: 0;
+  --frame-inset: 14px;
+  --frame-shadow-vibe: 0 1px 2px rgba(0, 0, 0, 0.07);
+  --signature-width: 100%;
+  --signature-border: 1px;
+  --signature-radius: 8px;
+  --signature-shadow: none;
+  --title-size: clamp(3.2rem, 8vw, 6.2rem);
+  --title-line: 1;
+  --title-align: left;
+  --title-shadow-vibe: none;
+  --title-word-gap: 0.2em;
+  --image-ratio: 16 / 6.8;
+  --image-border: 1px;
+  --image-radius: 0;
+  --image-filter: saturate(0.98) contrast(1.02);
+  --image-caption-rotate: 0deg;
+  --copy-border: 1px;
+  --copy-radius: 8px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 82%) 0 6px, transparent 6px),
+    #fbfaf6;
+}
+
+.vibe-civic-now::before {
+  background: none;
+  opacity: 0;
+}
+
+.vibe-civic-now .ribbon {
+  right: 14px;
+  bottom: 14px;
+  border-radius: 999px;
+  background: rgba(251, 250, 246, 0.92);
+  text-transform: none;
+}
+
+.vibe-xerox-punk .flyer-title,
+.vibe-80s-mall-pop .flyer-title,
+.vibe-civic-now .flyer-title {
+  padding-inline-start: 8px;
+}
+
+/* Civic-group specificity pass: each vibe gets one small group-owned cue. */
+.community-flyer .community-mark {
+  position: relative;
+  overflow: hidden;
+}
+
+.community-flyer .community-mark::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+}
+
+.vibe-70s-community .community-mark {
+  background:
+    radial-gradient(circle, var(--paper-soft) 0 18%, transparent 19% 32%, var(--ink) 33% 37%, transparent 38%),
+    conic-gradient(from 10deg, color-mix(in srgb, var(--accent-1), transparent 28%) 0 18%, transparent 18% 34%, color-mix(in srgb, var(--accent-3), transparent 24%) 34% 52%, transparent 52% 69%, color-mix(in srgb, var(--accent-2), transparent 30%) 69% 86%, transparent 86%),
+    #f6edd1;
+}
+
+.vibe-70s-community .poster-art {
+  border-radius: 10px 10px 18px 4px;
+}
+
+.vibe-disco-rink .community-mark {
+  background:
+    radial-gradient(circle, var(--paper-soft) 0 12%, color-mix(in srgb, var(--accent-2), transparent 20%) 13% 21%, transparent 22% 36%, var(--ink) 37% 41%, transparent 42%),
+    repeating-conic-gradient(from 18deg, rgba(17, 17, 17, 0.84) 0 8deg, transparent 8deg 24deg),
+    #fff7e2;
+}
+
+.vibe-disco-rink .poster-art {
+  border-radius: 8px 8px 2px 2px;
+}
+
+.vibe-disco-rink .ribbon {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 82%), var(--cream));
+}
+
+.vibe-xerox-punk .community-mark {
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 8px),
+    #fff;
+}
+
+.vibe-xerox-punk .community-mark::after {
+  content: "";
+  inset: 12px;
+  border: 3px solid var(--ink);
+  background: #fff;
+}
+
+.vibe-xerox-punk .poster-art {
+  border-radius: 0;
+}
+
+.vibe-80s-mall-pop .community-mark {
+  background: #fffaf2;
+}
+
+.vibe-80s-mall-pop .community-mark::after {
+  content: "?";
+  font-size: 2rem;
+  text-shadow: 2px 2px 0 color-mix(in srgb, var(--accent-1), transparent 45%);
+}
+
+.vibe-80s-mall-pop .copy-card strong {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent-2), transparent 30%);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
+.vibe-90s-block-party .community-mark {
+  background:
+    radial-gradient(circle, var(--ink) 0 10%, transparent 11% 33%, var(--ink) 34% 38%, transparent 39%),
+    conic-gradient(from 18deg, transparent 0 12%, rgba(19, 17, 14, 0.9) 12% 17%, transparent 17% 29%, rgba(19, 17, 14, 0.9) 29% 34%, transparent 34% 46%, rgba(19, 17, 14, 0.9) 46% 51%, transparent 51% 63%, rgba(19, 17, 14, 0.9) 63% 68%, transparent 68% 80%, rgba(19, 17, 14, 0.9) 80% 85%, transparent 85%),
+    #fff1c6;
+}
+
+.vibe-90s-block-party .poster-art {
+  border-radius: 2px;
+}
+
+.vibe-00s-zine-web h1 {
+  text-transform: none;
+}
+
+.vibe-00s-zine-web .community-mark {
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--ink), var(--ink)) 50% 62% / 54% 4px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 64% 48% / 4px 28% no-repeat,
+    radial-gradient(ellipse at 48% 48%, transparent 0 36%, var(--ink) 37% 43%, transparent 44%),
+    #fff;
+}
+
+.vibe-00s-zine-web .ribbon {
+  text-transform: lowercase;
+}
+
+.vibe-civic-now .community-mark {
+  border-radius: 8px;
+  background:
+    linear-gradient(var(--accent-3), var(--accent-3)) 50% 50% / 42% 6px no-repeat,
+    linear-gradient(var(--accent-3), var(--accent-3)) 50% 50% / 6px 42% no-repeat,
+    #fff;
+}
+
+.vibe-civic-now .copy-card strong {
+  color: color-mix(in srgb, var(--accent-1), var(--ink) 18%);
+}
+
+/* Newer community modes: millennial/Gen Z without losing the civic-flyer baseline. */
+.vibe-group-chat-flyer {
+  --flyer-pad: clamp(30px, 4.8vw, 50px);
+  --frame-border: 1px;
+  --frame-radius: 22px;
+  --frame-inset: 14px;
+  --frame-shadow-vibe: 0 10px 28px rgba(17, 17, 17, 0.06);
+  --signature-width: min(690px, 92%);
+  --signature-border: 1px;
+  --signature-radius: 22px 22px 22px 6px;
+  --signature-rotate: -0.25deg;
+  --signature-shadow: 5px 6px 0 color-mix(in srgb, var(--accent-2), transparent 80%);
+  --title-size: clamp(3.3rem, 8.6vw, 6.2rem);
+  --title-line: 0.92;
+  --title-align: left;
+  --title-margin: 18px 0 12px;
+  --title-shadow-vibe: none;
+  --title-word-gap: 0.16em;
+  --image-ratio: 16 / 7.4;
+  --image-border: 1px;
+  --image-radius: 18px;
+  --image-filter: saturate(0.96) contrast(1.02);
+  --image-caption-rotate: -1deg;
+  --copy-grid: 0.96fr 1.04fr;
+  --copy-border: 1px;
+  --copy-radius: 18px;
+  --copy-shadow: 4px 5px 0 color-mix(in srgb, var(--accent-1), transparent 86%);
+  background:
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent-1), transparent 86%) 0 46px, transparent 47px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-2), transparent 84%) 0 5px, transparent 5px),
+    #fbfaf7;
+}
+
+.vibe-group-chat-flyer::before {
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent-2), transparent 72%) 0 1.2px, transparent 1.5px 18px);
+  opacity: 0.28;
+}
+
+.vibe-group-chat-flyer .community-mark {
+  border-radius: 14px 14px 14px 4px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-2), transparent 22%), color-mix(in srgb, var(--accent-1), transparent 30%));
+}
+
+.vibe-group-chat-flyer .community-mark::after {
+  content: "";
+  inset: 13px 11px 14px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 31% 50%, var(--paper) 0 3px, transparent 4px),
+    radial-gradient(circle at 50% 50%, var(--paper) 0 3px, transparent 4px),
+    radial-gradient(circle at 69% 50%, var(--paper) 0 3px, transparent 4px),
+    color-mix(in srgb, var(--ink), transparent 4%);
+}
+
+.vibe-group-chat-flyer .poster-art {
+  border-radius: 18px;
+}
+
+.vibe-group-chat-flyer .ribbon {
+  right: 16px;
+  bottom: 16px;
+  border-radius: 999px 999px 999px 6px;
+  background: rgba(251, 250, 247, 0.94);
+  text-transform: none;
+  letter-spacing: 0.08em;
+}
+
+.vibe-group-chat-flyer h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.vibe-riso-indie-social {
+  --flyer-pad: clamp(30px, 4.8vw, 50px);
+  --row-overlap: -2px;
+  --frame-border: 2px;
+  --frame-radius: 4px;
+  --frame-inset: 12px;
+  --signature-width: min(660px, 90%);
+  --signature-border: 2px;
+  --signature-radius: 4px;
+  --signature-rotate: 0.4deg;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-1), transparent 72%);
+  --title-size: clamp(3.1rem, 8.4vw, 6rem);
+  --title-line: 0.88;
+  --title-align: left;
+  --title-margin: 16px 0 12px;
+  --title-shadow-vibe:
+    3px 0 0 color-mix(in srgb, var(--accent-2), transparent 56%),
+    -3px 2px 0 color-mix(in srgb, var(--accent-1), transparent 62%);
+  --image-ratio: 16 / 7.2;
+  --image-border: 6px;
+  --image-radius: 2px;
+  --image-rotate: -0.25deg;
+  --image-shadow: 4px 5px 0 color-mix(in srgb, var(--accent-3), transparent 78%);
+  --image-filter: saturate(0.86) contrast(1.08);
+  --copy-grid: 1fr 1fr;
+  --copy-border: 2px;
+  --copy-radius: 4px;
+  --copy-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-2), transparent 82%);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent-1), transparent 74%) 0 1px, transparent 1.4px 7px),
+    linear-gradient(90deg, transparent 0 20px, color-mix(in srgb, var(--accent-2), transparent 78%) 20px 23px, transparent 23px),
+    #fff7ed;
+}
+
+.vibe-riso-indie-social::before {
+  background:
+    linear-gradient(var(--ink), var(--ink)) 30px 30px / 38px 2px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 30px 30px / 2px 38px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(100% - 68px) calc(100% - 30px) / 38px 2px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(100% - 30px) calc(100% - 68px) / 2px 38px no-repeat;
+  opacity: 0.32;
+}
+
+.vibe-riso-indie-social .community-mark {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 38%, color-mix(in srgb, var(--accent-2), transparent 8%) 0 12%, transparent 13%),
+    radial-gradient(circle at 58% 46%, color-mix(in srgb, var(--accent-1), transparent 10%) 0 17%, transparent 18%),
+    radial-gradient(circle at 45% 64%, color-mix(in srgb, var(--accent-3), transparent 18%) 0 13%, transparent 14%),
+    #fff;
+}
+
+.vibe-riso-indie-social .community-mark::after {
+  content: "";
+  inset: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.vibe-riso-indie-social .poster-art::after {
+  background: color-mix(in srgb, var(--accent-1), transparent 90%);
+  mix-blend-mode: multiply;
+  opacity: 0.28;
+}
+
+.vibe-riso-indie-social .copy-card strong {
+  display: inline-block;
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--accent-3), transparent 80%);
+}
+
+.vibe-group-chat-flyer .flyer-title,
+.vibe-riso-indie-social .flyer-title {
+  padding-inline-start: 8px;
+}
+
+/* Young-city clarity pass: simpler, more varied, less headache. */
+.community-flyer {
+  --frame-shadow-vibe: 0 14px 34px rgba(17, 13, 8, 0.11);
+  --flyer-pad: clamp(30px, 4.8vw, 48px);
+  --frame-border: 1px;
+  --frame-radius: 0;
+  --frame-inset: 14px;
+  --row-overlap: 0px;
+  --signature-border: 1px;
+  --signature-shadow: none;
+  --signature-radius: 10px;
+  --title-size: clamp(2.65rem, 6.6vw, 5.25rem);
+  --title-line: 0.96;
+  --title-margin: 18px 0 16px;
+  --title-shadow-vibe: none;
+  --image-border: 1px;
+  --image-shadow: none;
+  --image-radius: 8px;
+  --image-caption-rotate: 0deg;
+  --copy-border: 1px;
+  --copy-radius: 10px;
+  --copy-shadow: none;
+  --copy-gap: 14px;
+}
+
+.community-flyer::after {
+  border-color: rgba(19, 17, 14, 0.16);
+}
+
+.community-flyer .signature {
+  border-color: rgba(19, 17, 14, 0.64);
+}
+
+.community-flyer .poster-art {
+  margin: 12px 0 16px;
+}
+
+.community-flyer .ribbon {
+  right: 14px;
+  bottom: 14px;
+  max-width: min(76%, 520px);
+  padding: 8px 18px;
+  border-width: 1px;
+  border-radius: 999px;
+  background: rgba(251, 250, 245, 0.92);
+  box-shadow: 0 1px 10px rgba(17, 13, 8, 0.08);
+  font-size: clamp(0.82rem, 1.5vw, 1.08rem);
+  letter-spacing: 0.05em;
+}
+
+.community-flyer .copy-card {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.community-flyer .copy-card p {
+  font-size: clamp(0.86rem, 1.45vw, 1rem);
+  line-height: 1.25;
+}
+
+.vibe-70s-community {
+  --frame-radius: 18px;
+  --frame-border: 1px;
+  --frame-inset: 16px;
+  --signature-width: min(680px, 92%);
+  --signature-radius: 18px;
+  --signature-rotate: 0deg;
+  --signature-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-1), transparent 88%);
+  --title-size: clamp(2.9rem, 7.2vw, 5.65rem);
+  --title-line: 0.9;
+  --title-align: left;
+  --title-margin: 20px 0 18px;
+  --image-ratio: 16 / 7.5;
+  --image-radius: 18px 18px 6px 18px;
+  --copy-radius: 18px 18px 6px 18px;
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--accent-1), transparent 86%) 0 56px, transparent 57px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-2), transparent 72%) 0 4px, transparent 4px),
+    #fff8ea;
+}
+
+.vibe-70s-community::before {
+  background: none;
+  opacity: 0;
+}
+
+.vibe-70s-community h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.vibe-70s-community .community-mark {
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 38% 38%, color-mix(in srgb, var(--accent-1), transparent 18%) 0 20%, transparent 21%),
+    radial-gradient(circle at 62% 58%, color-mix(in srgb, var(--accent-3), transparent 16%) 0 18%, transparent 19%),
+    #fff;
+}
+
+.vibe-70s-community .community-mark::after {
+  content: "G";
+  font-size: 1.35rem;
+}
+
+.vibe-group-chat-flyer {
+  --frame-radius: 28px;
+  --frame-inset: 16px;
+  --signature-width: 100%;
+  --signature-radius: 24px 24px 24px 8px;
+  --signature-shadow: 0 7px 0 color-mix(in srgb, var(--accent-2), transparent 84%);
+  --title-size: clamp(2.85rem, 7vw, 5.35rem);
+  --title-line: 0.92;
+  --image-ratio: 16 / 7.6;
+  --image-radius: 22px;
+  --copy-radius: 22px;
+  background:
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent-1), transparent 82%) 0 46px, transparent 47px),
+    radial-gradient(circle at 7% 88%, color-mix(in srgb, var(--accent-2), transparent 88%) 0 52px, transparent 53px),
+    #fcfbf7;
+}
+
+.vibe-group-chat-flyer::before {
+  background: none;
+  opacity: 0;
+}
+
+.vibe-group-chat-flyer h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--title-size);
+  font-weight: 900;
+  text-transform: none;
+}
+
+.vibe-group-chat-flyer .poster-art {
+  border-radius: 22px 22px 22px 7px;
+}
+
+.vibe-group-chat-flyer .ribbon {
+  border-radius: 999px 999px 999px 7px;
+  text-transform: none;
+}
+
+.vibe-xerox-punk {
+  --flyer-pad: clamp(26px, 4.2vw, 42px);
+  --frame-border: 2px;
+  --frame-inset: 10px;
+  --signature-width: 100%;
+  --signature-border: 2px;
+  --signature-rotate: -0.45deg;
+  --signature-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-3), transparent 64%);
+  --title-size: clamp(2.8rem, 6.8vw, 5.1rem);
+  --title-line: 0.9;
+  --image-ratio: 16 / 7.2;
+  --image-border: 2px;
+  --image-filter: grayscale(1) contrast(1.18) brightness(1.04);
+  --copy-border: 2px;
+  --copy-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, rgba(17, 17, 17, 0.035) 0 1px, transparent 1px 8px),
+    #f8f8f2;
+}
+
+.vibe-xerox-punk::before {
+  opacity: 0.16;
+}
+
+.vibe-xerox-punk h1 {
+  max-width: 700px;
+}
+
+.vibe-riso-indie-social {
+  --frame-radius: 6px;
+  --signature-radius: 8px;
+  --signature-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-1), transparent 78%);
+  --title-size: clamp(2.8rem, 6.8vw, 5.2rem);
+  --title-line: 0.92;
+  --title-align: left;
+  --title-shadow-vibe:
+    2px 0 0 color-mix(in srgb, var(--accent-2), transparent 68%),
+    -2px 1px 0 color-mix(in srgb, var(--accent-1), transparent 74%);
+  --image-ratio: 16 / 7.4;
+  --image-border: 2px;
+  --image-radius: 8px;
+  --image-filter: saturate(0.92) contrast(1.04);
+  --copy-radius: 8px;
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent-1), transparent 82%) 0 1px, transparent 1.4px 9px),
+    #fff7ef;
+}
+
+.vibe-riso-indie-social::before {
+  opacity: 0.18;
+}
+
+.vibe-riso-indie-social h1 {
+  max-width: 720px;
+}
+
+.vibe-90s-block-party {
+  --flyer-pad: clamp(28px, 4.6vw, 46px);
+  --frame-border: 1px;
+  --frame-inset: 13px;
+  --signature-border: 1px;
+  --signature-radius: 6px;
+  --signature-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-3), transparent 82%);
+  --title-size: clamp(2.9rem, 7.4vw, 5.55rem);
+  --title-line: 0.86;
+  --title-align: left;
+  --title-shadow-vibe: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 78%);
+  --image-ratio: 16 / 7.1;
+  --image-border: 2px;
+  --image-radius: 4px;
+  --image-shadow: 5px 5px 0 color-mix(in srgb, var(--accent-2), transparent 84%);
+  --copy-border: 1px;
+  --copy-radius: 4px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 72%) 0 5px, transparent 5px calc(100% - 5px), color-mix(in srgb, var(--accent-1), transparent 80%) calc(100% - 5px)),
+    #fff8e7;
+}
+
+.vibe-90s-block-party h1 {
+  text-align: left;
+}
+
+.vibe-90s-block-party .ribbon {
+  border-radius: 4px;
+  box-shadow: none;
+  text-transform: none;
+}
+
+.vibe-00s-zine-web {
+  --frame-border: 1px;
+  --frame-inset: 13px;
+  --signature-width: min(660px, 92%);
+  --signature-border: 1px;
+  --signature-radius: 8px;
+  --signature-rotate: -0.25deg;
+  --signature-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  --title-size: clamp(2.8rem, 6.8vw, 5.25rem);
+  --title-line: 0.96;
+  --image-ratio: 16 / 7.7;
+  --image-border: 1px;
+  --image-radius: 10px;
+  --image-rotate: -0.25deg;
+  --copy-border: 1px;
+  --copy-radius: 8px;
+  background:
+    linear-gradient(90deg, transparent 0 42px, color-mix(in srgb, var(--accent-2), transparent 82%) 42px 44px, transparent 44px),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(47, 128, 237, 0.07) 31px 32px),
+    #fbfaf4;
+}
+
+.vibe-00s-zine-web h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.vibe-00s-zine-web .ribbon {
+  text-transform: none;
+}
+
+.vibe-civic-now {
+  --flyer-pad: clamp(34px, 5vw, 54px);
+  --frame-border: 1px;
+  --frame-radius: 0;
+  --signature-width: 100%;
+  --signature-radius: 12px;
+  --title-size: clamp(2.9rem, 6.8vw, 5.25rem);
+  --title-line: 0.98;
+  --image-ratio: 16 / 7.4;
+  --image-radius: 12px;
+  --copy-radius: 12px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 84%) 0 5px, transparent 5px),
+    #fbfaf6;
+}
+
+.vibe-civic-now .ribbon {
+  right: 16px;
+  bottom: 16px;
+  text-transform: none;
+}
+
+.vibe-civic-now h1 {
+  max-width: 720px;
+}
+
+/* Young-city simplification pass: distinct shapes, quieter shadows, one clear gesture per community. */
+.community-flyer {
+  --frame-shadow-vibe: 0 16px 34px rgba(17, 13, 8, 0.1);
+  --copy-shadow: none;
+  --title-word-gap: 0.13em;
+}
+
+.community-flyer .signature,
+.community-flyer .copy-card,
+.community-flyer .poster-art {
+  border-color: rgba(19, 17, 14, 0.72);
+}
+
+.community-flyer .community-line,
+.community-flyer .copy-card p {
+  color: rgba(19, 17, 14, 0.88);
+}
+
+.vibe-70s-community {
+  --frame-radius: 24px 24px 8px 24px;
+  --signature-radius: 18px 18px 6px 18px;
+  --signature-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-3), transparent 84%);
+  --title-size: clamp(3rem, 7.1vw, 5.45rem);
+  --title-align: left;
+  --title-shadow-vibe: 2px 2px 0 color-mix(in srgb, var(--accent-3), transparent 84%);
+  --image-radius: 20px 20px 6px 20px;
+  --copy-radius: 18px 18px 6px 18px;
+  background:
+    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--accent-1), transparent 88%) 0 54px, transparent 55px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 74%) 0 4px, transparent 4px),
+    #fff8ec;
+}
+
+.vibe-70s-community .community-mark::after {
+  content: "GC";
+  font-size: 0.95rem;
+  letter-spacing: 0;
+}
+
+.vibe-group-chat-flyer {
+  --frame-radius: 30px;
+  --signature-radius: 26px 26px 26px 8px;
+  --signature-shadow: 0 6px 0 color-mix(in srgb, var(--accent-2), transparent 88%);
+  --title-size: clamp(2.9rem, 6.8vw, 5.25rem);
+  --title-shadow-vibe: none;
+  --image-border: 1px;
+  --image-radius: 24px;
+  --copy-radius: 24px 24px 24px 8px;
+  background:
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent-1), transparent 86%) 0 42px, transparent 43px),
+    radial-gradient(circle at 8% 88%, color-mix(in srgb, var(--accent-2), transparent 90%) 0 48px, transparent 49px),
+    #fcfbf8;
+}
+
+.vibe-group-chat-flyer .community-mark::after {
+  content: "";
+}
+
+.vibe-xerox-punk {
+  --frame-border: 1px;
+  --frame-inset: 12px;
+  --signature-border: 1px;
+  --signature-rotate: -0.25deg;
+  --signature-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 80%);
+  --title-size: clamp(2.65rem, 6.25vw, 4.85rem);
+  --title-shadow-vibe: none;
+  --image-border: 1px;
+  --image-radius: 1px;
+  --image-filter: saturate(0.74) contrast(1.05);
+  --copy-border: 1px;
+  --copy-radius: 2px;
+  --copy-shadow: 2px 2px 0 rgba(17, 17, 17, 0.1);
+  background:
+    linear-gradient(90deg, transparent 0 38px, color-mix(in srgb, var(--accent-3), transparent 84%) 38px 40px, transparent 40px),
+    repeating-linear-gradient(0deg, rgba(17, 17, 17, 0.025) 0 1px, transparent 1px 10px),
+    #fbfaf3;
+}
+
+.vibe-xerox-punk::before {
+  opacity: 0.08;
+}
+
+.vibe-xerox-punk .community-mark {
+  background:
+    linear-gradient(var(--ink), var(--ink)) 50% 50% / 44% 3px no-repeat,
+    linear-gradient(var(--accent-3), var(--accent-3)) 50% 63% / 50% 3px no-repeat,
+    #fff;
+}
+
+.vibe-xerox-punk .community-mark::after {
+  content: "";
+  border: 0;
+  background: none;
+}
+
+.vibe-riso-indie-social {
+  --frame-radius: 14px 2px 14px 2px;
+  --signature-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-1), transparent 84%);
+  --title-size: clamp(2.75rem, 6.4vw, 5.05rem);
+  --title-shadow-vibe:
+    2px 0 0 color-mix(in srgb, var(--accent-2), transparent 76%),
+    -2px 1px 0 color-mix(in srgb, var(--accent-1), transparent 80%);
+  --image-border: 1px;
+  --image-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 88%);
+  --copy-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-2), transparent 88%);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--accent-1), transparent 90%) 0 1px, transparent 1.5px 10px),
+    #fff8ef;
+}
+
+.vibe-90s-block-party {
+  --frame-radius: 0;
+  --signature-radius: 4px;
+  --signature-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-3), transparent 86%);
+  --title-size: clamp(2.9rem, 7vw, 5.25rem);
+  --title-shadow-vibe: 3px 3px 0 color-mix(in srgb, var(--accent-3), transparent 82%);
+  --image-shadow: 4px 4px 0 color-mix(in srgb, var(--accent-2), transparent 88%);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-3), transparent 78%) 0 5px, transparent 5px calc(100% - 5px), color-mix(in srgb, var(--accent-1), transparent 86%) calc(100% - 5px)),
+    repeating-linear-gradient(0deg, rgba(17, 17, 17, 0.025) 0 1px, transparent 1px 13px),
+    #fff8e8;
+}
+
+.vibe-00s-zine-web {
+  --frame-radius: 6px;
+  --signature-radius: 10px;
+  --signature-shadow: 2px 2px 0 rgba(0, 0, 0, 0.08);
+  --title-size: clamp(2.7rem, 6.35vw, 4.95rem);
+  --title-shadow-vibe: 2px 2px 0 color-mix(in srgb, var(--accent-1), transparent 88%);
+  --image-radius: 12px;
+  --image-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-2), transparent 90%);
+  background:
+    linear-gradient(90deg, transparent 0 42px, color-mix(in srgb, var(--accent-2), transparent 86%) 42px 44px, transparent 44px),
+    repeating-linear-gradient(0deg, transparent 0 31px, color-mix(in srgb, var(--accent-1), transparent 92%) 31px 32px),
+    #fbfaf4;
+}
+
+.vibe-civic-now {
+  --frame-radius: 18px;
+  --signature-radius: 16px;
+  --signature-shadow: none;
+  --title-size: clamp(2.8rem, 6.25vw, 4.95rem);
+  --title-shadow-vibe: none;
+  --image-border: 1px;
+  --copy-border: 1px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-2), transparent 92%) 0 72px, transparent 72px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-1), transparent 86%) 0 5px, transparent 5px),
+    #fbfaf6;
+}
+
+.community-flyer::after {
+  display: none;
+}
+
+/* Direct-edit controls and locked-frame behavior. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.community-flyer {
+  height: auto;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  padding-block-start: clamp(10px, 1.8vw, 20px);
+}
+
+.flyer-preview-shell {
+  --flyer-preview-scale: 1;
+  position: relative;
+  width: min(760px, 100%);
+  justify-self: center;
+}
+
+.flyer-preview-shell.is-cork-preview {
+  --flyer-preview-scale: 0.75;
+  width: min(570px, 100%);
+}
+
+.flyer-preview-inner {
+  width: 760px;
+  zoom: var(--flyer-preview-scale);
+  transform: scale(var(--flyer-preview-scale));
+  transform-origin: top left;
+}
+
+.flyer-preview-shell.is-cork-preview .flyer-preview-inner {
+  transform: none;
+}
+
+.preview-caption {
+  margin: 10px 0 0;
+  color: #5e5a53;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.flyer-rows {
+  flex: 1;
+  align-content: start;
+  overflow: visible;
+}
+
+.flyer-rows.is-image-only {
+  align-content: stretch;
+}
+
+.flyer-rows.is-image-only .flyer-row-art,
+.flyer-rows.is-image-only .poster-art {
+  height: 100%;
+}
+
+.flyer-rows.is-image-only .poster-art {
+  aspect-ratio: auto;
+  margin: 0;
+}
+
+.flyer-rows.is-image-only .poster-photo {
+  object-fit: contain;
+}
+
+.signature-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.category-control,
+.signature-prefix-control {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.category-control {
+  gap: 5px;
+}
+
+.category-icon {
+  display: inline-grid;
+  width: 1.35em;
+  height: 1.35em;
+  place-items: center;
+  color: var(--ink);
+  font: 900 0.66rem/1 Arial, Helvetica, sans-serif;
+  letter-spacing: -0.08em;
+}
+
+.category-select,
+.signature-prefix-input {
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.category-select {
+  max-width: 17ch;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.signature-prefix-input {
+  width: clamp(8ch, 16ch, 22ch);
+}
+
+.category-select:focus,
+.signature-prefix-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-2), transparent 28%);
+  outline-offset: 3px;
+}
+
+.signature-prefix-input::-webkit-calendar-picker-indicator {
+  opacity: 0.75;
+  cursor: pointer;
+}
+
+.community-name,
+.community-line,
+.when-where-item p,
+.ribbon,
+.copy-card .editable-text {
+  overflow: hidden;
+}
+
+.community-line {
+  display: -webkit-box;
+  max-height: 3.54em;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.flyer-title {
+  max-height: calc(1em * var(--title-line, 0.96) * 3.15);
+  overflow: hidden;
+}
+
+.flyer-title.is-title-md {
+  --title-size: clamp(2.35rem, 5.55vw, 4.3rem);
+}
+
+.flyer-title.is-title-sm {
+  --title-size: clamp(2.05rem, 4.8vw, 3.7rem);
+}
+
+.flyer-title.is-title-xs {
+  --title-size: clamp(1.75rem, 4.05vw, 3.1rem);
+}
+
+.copy-card .editable-text {
+  display: -webkit-box;
+  max-height: 6.25em;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
+
+.ribbon {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Outline restraint pass: outlines are a tool, not the whole voice. */
+.vibe-70s-community {
+  --signature-border: 0px;
+  --image-border: 0px;
+  --copy-border: 0px;
+  --signature-shadow: 0 4px 0 color-mix(in srgb, var(--accent-3), transparent 84%);
+  --copy-shadow: 0 3px 0 color-mix(in srgb, var(--accent-3), transparent 90%);
+}
+
+.vibe-70s-community .signature,
+.vibe-70s-community .copy-card {
+  background: color-mix(in srgb, #fff8ea, var(--accent-1) 6%);
+}
+
+.vibe-group-chat-flyer {
+  --signature-border: 1px;
+  --image-border: 0px;
+  --copy-border: 1px;
+}
+
+.vibe-group-chat-flyer .signature,
+.vibe-group-chat-flyer .copy-card {
+  border-color: color-mix(in srgb, var(--ink), transparent 70%);
+}
+
+.vibe-xerox-punk {
+  --signature-border: 2px;
+  --image-border: 2px;
+  --copy-border: 2px;
+}
+
+.vibe-riso-indie-social {
+  --signature-border: 0px;
+  --image-border: 1px;
+  --copy-border: 0px;
+}
+
+.vibe-riso-indie-social .signature,
+.vibe-riso-indie-social .copy-card {
+  background: color-mix(in srgb, #fff8ef, var(--accent-2) 4%);
+}
+
+.vibe-90s-block-party {
+  --signature-border: 1px;
+  --image-border: 2px;
+  --copy-border: 1px;
+}
+
+.vibe-00s-zine-web {
+  --signature-border: 1px;
+  --image-border: 0px;
+  --copy-border: 1px;
+}
+
+.vibe-00s-zine-web .poster-art {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ink), transparent 74%),
+    var(--image-shadow);
+}
+
+.vibe-civic-now {
+  --signature-border: 0px;
+  --image-border: 0px;
+  --copy-border: 1px;
+}
+
+.vibe-civic-now .signature,
+.vibe-civic-now .poster-art {
+  box-shadow: none;
+}
+
+.vibe-civic-now .copy-card {
+  border-color: color-mix(in srgb, var(--ink), transparent 78%);
+}
+
+/* Classifieds category header: useful scan metadata, not another loud module. */
+.community-flyer {
+  --header-rule-color: color-mix(in srgb, var(--accent-2), var(--ink) 34%);
+  --header-border-color: color-mix(in srgb, var(--ink), transparent 72%);
+  --header-bg: transparent;
+  --header-radius: 0;
+  --header-shadow: none;
+  --header-pad: 8px 0 10px;
+  --header-font: Arial, Helvetica, sans-serif;
+  --header-transform: uppercase;
+  --header-letter: 0.12em;
+}
+
+.flyer-header-row {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: var(--header-pad);
+  border: var(--header-border-width, 0) solid var(--header-border-color);
+  border-radius: var(--header-radius);
+  background: var(--header-bg);
+  box-shadow: var(--header-shadow);
+  font-family: var(--header-font);
+}
+
+.flyer-header-rule {
+  grid-column: 1 / -1;
+  height: var(--header-rule-height, 4px);
+  background: var(--header-rule-color);
+}
+
+.flyer-category-control {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.flyer-category-icon-frame {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  place-items: center;
+}
+
+.flyer-category-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.flyer-category-select,
+.posted-age {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--header-font);
+  font-size: clamp(0.82rem, 1.65vw, 1.02rem);
+  font-weight: 850;
+  letter-spacing: var(--header-letter);
+  line-height: 1;
+  text-transform: var(--header-transform);
+}
+
+.flyer-category-select {
+  max-width: min(100%, 23ch);
+  appearance: none;
+  cursor: pointer;
+  padding: 0 18px 0 0;
+}
+
+.flyer-category-select:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-2), transparent 24%);
+  outline-offset: 4px;
+}
+
+.posted-age {
+  white-space: nowrap;
+}
+
+.signature-prefix-control {
+  position: relative;
+  gap: 7px;
+}
+
+.signature-prefix-select,
+.signature-prefix-custom {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  min-width: 0;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.signature-prefix-select {
+  appearance: none;
+  cursor: pointer;
+  max-width: 20ch;
+  padding-right: 16px;
+}
+
+.signature-prefix-custom {
+  width: min(17ch, 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink), transparent 46%);
+}
+
+.signature-prefix-select:focus,
+.signature-prefix-custom:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-2), transparent 28%);
+  outline-offset: 3px;
+}
+
+.community-flyer.is-editing .flyer-category-select,
+.community-flyer.is-editing .signature-prefix-select {
+  background:
+    linear-gradient(45deg, transparent 50%, currentColor 50%) right 0.45em center / 0.38em 0.38em no-repeat,
+    linear-gradient(135deg, currentColor 50%, transparent 50%) right 0.18em center / 0.38em 0.38em no-repeat;
+}
+
+@media print {
+  .community-flyer.is-editing .flyer-category-select,
+  .community-flyer.is-editing .signature-prefix-select {
+    background: transparent;
+  }
+}
+
+.vibe-70s-community {
+  --header-rule-color: color-mix(in srgb, var(--accent-2), var(--ink) 32%);
+  --header-font: Arial, Helvetica, sans-serif;
+  --header-shadow: 0 2px 0 color-mix(in srgb, var(--accent-3), transparent 88%);
+}
+
+.vibe-group-chat-flyer {
+  --header-rule-color: color-mix(in srgb, var(--accent-1), var(--ink) 12%);
+  --header-bg: color-mix(in srgb, #fff, var(--accent-2) 5%);
+  --header-border-width: 1px;
+  --header-border-color: color-mix(in srgb, var(--ink), transparent 82%);
+  --header-radius: 18px 18px 18px 6px;
+  --header-pad: 9px 12px 10px;
+  --header-letter: 0.09em;
+  --header-transform: none;
+}
+
+.vibe-xerox-punk {
+  --header-rule-color: var(--ink);
+  --header-rule-height: 3px;
+  --header-font: "Courier New", Courier, monospace;
+  --header-letter: 0.08em;
+}
+
+.vibe-xerox-punk .flyer-category-select,
+.vibe-xerox-punk .posted-age {
+  font-weight: 900;
+}
+
+.vibe-riso-indie-social {
+  --header-rule-color: color-mix(in srgb, var(--accent-2), var(--ink) 10%);
+  --header-shadow:
+    2px 0 0 color-mix(in srgb, var(--accent-1), transparent 84%),
+    -2px 1px 0 color-mix(in srgb, var(--accent-2), transparent 88%);
+}
+
+.vibe-90s-block-party {
+  --header-rule-color: color-mix(in srgb, var(--accent-1), var(--ink) 12%);
+  --header-rule-height: 5px;
+}
+
+.vibe-90s-block-party .flyer-category-select,
+.vibe-90s-block-party .posted-age {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  letter-spacing: 0.06em;
+}
+
+.vibe-00s-zine-web {
+  --header-rule-color: color-mix(in srgb, var(--accent-1), var(--ink) 18%);
+  --header-font: "Courier New", Courier, monospace;
+  --header-letter: 0.03em;
+  --header-transform: lowercase;
+}
+
+.vibe-civic-now {
+  --header-rule-color: color-mix(in srgb, var(--ink), transparent 70%);
+  --header-rule-height: 1px;
+  --header-bg: rgba(255, 255, 255, 0.42);
+  --header-border-width: 1px;
+  --header-border-color: color-mix(in srgb, var(--ink), transparent 84%);
+  --header-radius: 12px;
+  --header-pad: 10px 14px;
+  --header-letter: 0.08em;
+}
+
+.community-flyer.has-custom-background {
+  background: var(--flyer-background);
+}
+
+.community-flyer.has-custom-text {
+  --ink: var(--flyer-text);
+  color: var(--flyer-text);
+}
+
+.community-flyer.has-custom-outline,
+.community-flyer.has-custom-outline *,
+.community-flyer.has-custom-outline::before,
+.community-flyer.has-custom-outline::after,
+.community-flyer.has-custom-outline *::before,
+.community-flyer.has-custom-outline *::after {
+  border-color: var(--flyer-outline) !important;
+}
+
+.community-flyer.has-custom-outline .flyer-header-rule,
+.community-flyer.has-custom-outline .row-grip span {
+  background: var(--flyer-outline) !important;
+}
+
+.community-flyer.has-custom-text-boxes .flyer-header-row,
+.community-flyer.has-custom-text-boxes .signature,
+.community-flyer.has-custom-text-boxes .when-where-item,
+.community-flyer.has-custom-text-boxes .ribbon,
+.community-flyer.has-custom-text-boxes .copy-card {
+  background: var(--flyer-text-box) !important;
+}
+
+.community-flyer.depth-flat {
+  --shadow: none;
+  --frame-shadow-vibe: none;
+  --signature-shadow: none;
+  --title-shadow-vibe: none;
+  --image-shadow: none;
+  --copy-shadow: none;
+  --header-shadow: none;
+  box-shadow: none;
+}
+
+.community-flyer.depth-flat *,
+.community-flyer.depth-flat *::before,
+.community-flyer.depth-flat *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.community-flyer.depth-bold {
+  --shadow: 0 30px 70px rgba(17, 13, 8, 0.3);
+  --frame-shadow-vibe: 8px 8px 0 color-mix(in srgb, var(--accent-2), transparent 78%);
+  --signature-shadow: 7px 7px 0 color-mix(in srgb, var(--accent-3), transparent 78%);
+  --image-shadow: 8px 8px 0 color-mix(in srgb, var(--accent-2), transparent 78%);
+  --copy-shadow: 6px 6px 0 color-mix(in srgb, var(--accent-3), transparent 82%);
+  --header-shadow: 0 4px 0 color-mix(in srgb, var(--accent-3), transparent 78%);
+}
+
+.community-flyer.depth-bold .flyer-title {
+  text-shadow:
+    3px 3px 0 var(--paper-soft),
+    6px 6px 0 color-mix(in srgb, var(--accent-2), transparent 42%);
+}
+
+@media (max-width: 980px) {
+  .flyer-preview-shell,
+  .flyer-preview-shell.is-cork-preview {
+    width: min(760px, 100%);
+    min-height: auto;
+  }
+
+  .flyer-preview-inner {
+    width: 100%;
+    zoom: 1;
+    transform: none;
+  }
+}
