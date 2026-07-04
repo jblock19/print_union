@@ -913,13 +913,21 @@ private struct RepurposeContentPanel: View {
     text: Binding<String>,
     isMultiline: Bool = false
   ) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    let slotID = document.firstElementID(for: role)
+    let isActive = selectedElementID == slotID
+
+    return VStack(alignment: .leading, spacing: 4) {
       HStack {
         Text(label)
           .font(.caption.weight(.semibold))
+        if isActive {
+          Text("Active")
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(Color.accentColor)
+        }
         Spacer()
         Button {
-          selectedElementID = document.firstElementID(for: role)
+          selectedElementID = slotID
         } label: {
           Image(systemName: "scope")
         }
@@ -930,17 +938,28 @@ private struct RepurposeContentPanel: View {
       if isMultiline {
         EditableTextView(
           text: text,
-          font: .monospacedSystemFont(ofSize: 13, weight: .regular)
+          font: .monospacedSystemFont(ofSize: 13, weight: .regular),
+          onFocus: { selectedElementID = slotID }
         )
           .frame(minHeight: 82)
       } else {
         EditableTextField(
           text: text,
-          placeholder: label
+          placeholder: label,
+          onFocus: { selectedElementID = slotID }
         )
         .frame(height: 26)
       }
     }
+    .padding(6)
+    .background(
+      RoundedRectangle(cornerRadius: 7, style: .continuous)
+        .fill(isActive ? Color.accentColor.opacity(0.08) : Color.clear)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 7, style: .continuous)
+        .stroke(isActive ? Color.accentColor.opacity(0.55) : Color.clear, lineWidth: 1)
+    )
   }
 
   private func contentBinding(_ keyPath: WritableKeyPath<InvitationContent, String>, role: ContentRole) -> Binding<String> {
@@ -1064,27 +1083,41 @@ private struct ElementListPanel: View {
   }
 
   private func elementRow(_ element: PrintElement) -> some View {
-    Button {
+    let isActive = selectedElementID == element.id
+
+    return Button {
       selectedElementID = element.id
     } label: {
       HStack {
+        if isActive {
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color.accentColor)
+            .frame(width: 4, height: 22)
+        }
+
         Label(element.label, systemImage: iconName(for: element.type))
           .lineLimit(1)
         Spacer()
-        Text(element.role?.displayName ?? element.type.displayName)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+        if isActive {
+          Text("Active")
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(Color.accentColor)
+        } else {
+          Text(element.role?.displayName ?? element.type.displayName)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+        }
       }
       .padding(.horizontal, 10)
       .padding(.vertical, 8)
       .frame(maxWidth: .infinity)
       .background(
         RoundedRectangle(cornerRadius: 7, style: .continuous)
-          .fill(selectedElementID == element.id ? Color.accentColor.opacity(0.14) : Color(nsColor: .textBackgroundColor))
+          .fill(isActive ? Color.accentColor.opacity(0.16) : Color(nsColor: .textBackgroundColor))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 7, style: .continuous)
-          .stroke(selectedElementID == element.id ? Color.accentColor.opacity(0.55) : Color.black.opacity(0.08), lineWidth: 1)
+          .stroke(isActive ? Color.accentColor.opacity(0.78) : Color.black.opacity(0.08), lineWidth: isActive ? 1.5 : 1)
       )
     }
     .buttonStyle(.plain)
@@ -1112,11 +1145,23 @@ private struct PrintCanvasView: View {
   let onDropSources: ([NSItemProvider]) -> Bool
   @State private var isDropTargeted = false
 
+  private var selectedElement: PrintElement? {
+    document.element(withID: selectedElementID)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
         Text(hasSource ? "Repurpose This Flyer" : "Blank Print Canvas")
           .font(.title2.bold())
+        if let selectedElement {
+          Label(selectedElement.label, systemImage: "scope")
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.accentColor.opacity(0.1), in: Capsule())
+        }
         Spacer()
         Label("Print-ready preview", systemImage: "printer")
           .foregroundStyle(.secondary)
@@ -1237,7 +1282,8 @@ private struct PrintCanvasView: View {
         textColor: .white,
         backgroundColor: .black,
         isBordered: false,
-        drawsBackground: true
+        drawsBackground: true,
+        onFocus: { selectedElementID = element.id }
       )
       .padding(.horizontal, 8)
       .background(.black)
@@ -1264,35 +1310,40 @@ private struct PrintCanvasView: View {
           text: textBinding(for: element.id),
           font: .systemFont(ofSize: 34, weight: .black),
           isBordered: false,
-          drawsBackground: false
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
         )
       case .whenWhere:
         EditableTextView(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 11, weight: .semibold),
           isBordered: false,
-          drawsBackground: false
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
         )
       case .details:
         EditableTextView(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 13, weight: .medium),
           isBordered: false,
-          drawsBackground: false
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
         )
       case .callToAction:
         EditableTextField(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 14, weight: .bold),
           isBordered: false,
-          drawsBackground: false
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
         )
       default:
         EditableTextField(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 13, weight: .semibold),
           isBordered: false,
-          drawsBackground: false
+          drawsBackground: false,
+          onFocus: { selectedElementID = element.id }
         )
       }
     }
@@ -1334,9 +1385,20 @@ private struct PrintCanvasView: View {
   @ViewBuilder
   private func selectionOverlay(for element: PrintElement) -> some View {
     if selectedElementID == element.id {
-      Rectangle()
-        .stroke(.blue, lineWidth: 2)
-        .allowsHitTesting(false)
+      ZStack(alignment: .topLeading) {
+        Rectangle()
+          .stroke(Color.accentColor, lineWidth: 3)
+
+        Text(element.label)
+          .font(.caption.weight(.bold))
+          .foregroundStyle(.white)
+          .lineLimit(1)
+          .padding(.horizontal, 7)
+          .padding(.vertical, 3)
+          .background(Color.accentColor, in: Capsule())
+          .offset(x: 6, y: -18)
+      }
+      .allowsHitTesting(false)
     }
   }
 
