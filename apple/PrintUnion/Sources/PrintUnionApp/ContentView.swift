@@ -13,6 +13,7 @@ struct ContentView: View {
   @State private var importedSource: ImportedSource?
   @State private var isImporterPresented = false
   @State private var importError: String?
+  @State private var didLoadTestSource = false
 
   var selectedElement: PrintElement? {
     document.elements.first { $0.id == selectedElementID }
@@ -65,6 +66,7 @@ struct ContentView: View {
       allowsMultipleSelection: false,
       onCompletion: handleImport
     )
+    .onAppear(perform: loadTestSourceIfNeeded)
   }
 
   private func handleImport(_ result: Result<[URL], Error>) {
@@ -168,6 +170,21 @@ struct ContentView: View {
     selectedElementID = nil
     importedSource = nil
     importError = nil
+  }
+
+  private func loadTestSourceIfNeeded() {
+    guard !didLoadTestSource else { return }
+    didLoadTestSource = true
+
+    guard let path = ProcessInfo.processInfo.environment["PRINT_UNION_TEST_SOURCE"], !path.isEmpty else {
+      return
+    }
+
+    do {
+      try importSource(from: URL(fileURLWithPath: path))
+    } catch {
+      importError = error.localizedDescription
+    }
   }
 
   private func handleGuideAction(_ step: GuideStep) {
@@ -913,15 +930,13 @@ private struct RepurposeContentPanel: View {
       if isMultiline {
         EditableTextView(
           text: text,
-          font: .monospacedSystemFont(ofSize: 13, weight: .regular),
-          onFocus: { selectedElementID = document.firstElementID(for: role) }
+          font: .monospacedSystemFont(ofSize: 13, weight: .regular)
         )
           .frame(minHeight: 82)
       } else {
         EditableTextField(
           text: text,
-          placeholder: label,
-          onFocus: { selectedElementID = document.firstElementID(for: role) }
+          placeholder: label
         )
         .frame(height: 26)
       }
@@ -1222,8 +1237,7 @@ private struct PrintCanvasView: View {
         textColor: .white,
         backgroundColor: .black,
         isBordered: false,
-        drawsBackground: true,
-        onFocus: { selectedElementID = element.id }
+        drawsBackground: true
       )
       .padding(.horizontal, 8)
       .background(.black)
@@ -1250,40 +1264,35 @@ private struct PrintCanvasView: View {
           text: textBinding(for: element.id),
           font: .systemFont(ofSize: 34, weight: .black),
           isBordered: false,
-          drawsBackground: false,
-          onFocus: { selectedElementID = element.id }
+          drawsBackground: false
         )
       case .whenWhere:
         EditableTextView(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 11, weight: .semibold),
           isBordered: false,
-          drawsBackground: false,
-          onFocus: { selectedElementID = element.id }
+          drawsBackground: false
         )
       case .details:
         EditableTextView(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 13, weight: .medium),
           isBordered: false,
-          drawsBackground: false,
-          onFocus: { selectedElementID = element.id }
+          drawsBackground: false
         )
       case .callToAction:
         EditableTextField(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 14, weight: .bold),
           isBordered: false,
-          drawsBackground: false,
-          onFocus: { selectedElementID = element.id }
+          drawsBackground: false
         )
       default:
         EditableTextField(
           text: textBinding(for: element.id),
           font: .monospacedSystemFont(ofSize: 13, weight: .semibold),
           isBordered: false,
-          drawsBackground: false,
-          onFocus: { selectedElementID = element.id }
+          drawsBackground: false
         )
       }
     }
